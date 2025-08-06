@@ -49,13 +49,13 @@ async function findLatestForecast() {
     throw new Error("No valid forecast base found.");
 }
 
-async function fileExists(url) {
-    try {
-        const response = await fetch(url, { method: 'HEAD' });
-        return response.ok;
-    } catch {
-        return false;
-    }
+function fileExists(url) {
+    return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
 }
 
 // Build and load the image
