@@ -20,15 +20,6 @@ function getDateString(date) {
            pad(date.getDate());
 }
 
-async function fileExists(url) {
-    try {
-        const response = await fetch(url, { method: 'HEAD' });
-        return response.ok;
-    } catch {
-        return false;
-    }
-}
-
 async function findLatestForecast() {
     const today = new Date();
     const yesterday = new Date(today);
@@ -53,8 +44,14 @@ async function findLatestForecast() {
     throw new Error("No valid forecast base found.");
 }
 
-// Load initial image
-updateImage();
+async function fileExists(url) {
+    try {
+        const response = await fetch(url, { method: 'HEAD' });
+        return response.ok;
+    } catch {
+        return false;
+    }
+}
 
 // Build and load the image
 function updateImage() {
@@ -64,16 +61,6 @@ function updateImage() {
     const imageUrl = `${BASE_URL}/${fileName}`;
 
     document.getElementById("forecast-image").src = imageUrl;
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        await findLatestForecast();  // sets forecastDate and forecastTime
-        updateImage();
-    } catch (err) {
-        alert("Forecast data not available.");
-        console.error(err);
-    }
 }
 
 // Handle offset changes
@@ -94,3 +81,12 @@ function changeAltitude(direction) {
     }
 }
 
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await findLatestForecast();  // sets forecastDate and forecastTime
+        updateImage();
+    } catch (err) {
+        alert("Forecast data not available.");
+        console.error(err);
+    }
+}
