@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Paladin – Static Test</title>
+    
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .image-container {
+        height: 100vh;
+        width: 100vw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    img {
+        object-fit: contain;
+        display: block;
+    }
+
+    /* Portrait: fill width */
+    @media (orientation: portrait) {
+        img {
+            width: 100%;
+            height: auto;
+        }
+    }
+
+    /* Landscape: fill height */
+    @media (orientation: landscape) {
+        img {
+            height: 100%;
+            width: auto;
+        }
+    }
+</style>
+
+</head>
+<body>
+    <div class="image-container">
+        <img id="forecast-image" alt="Forecast">
+    </div>
+<div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; text-align: center;">
+    <button onclick="changeOffset(-3)">← Offset</button>
+    <button onclick="changeOffset(3)">Offset →</button>
+    <button onclick="changeAltitude(1)">↑ Alt</button>
+    <button onclick="changeAltitude(-1)">Alt ↓</button>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
+
