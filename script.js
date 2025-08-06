@@ -4,12 +4,15 @@ const altitudes = ["tcc-rr", "vf500m", "vf1000m", "vf1500m", "vf2000m", "vf2500m
 const MIN_OFFSET = 3;
 const MAX_OFFSET = 72;
 const OFFSET_STEP = 3;
-const pad = n => n.toString().padStart(2, '0');
 
 let offset = MIN_OFFSET;     // starts at 3h
 let altitudeIndex = 0;       // index in the altitudes list
 let forecastDate = null;     // e.g. "20250806"
 let forecastTime = null;     // "1200" or "0000"
+
+function pad(n) {
+    return n.toString().padStart(2, '0');
+}
 
 function getDateString(date) {
     return date.getFullYear().toString() +
@@ -53,16 +56,6 @@ async function findLatestForecast() {
 // Load initial image
 updateImage();
 
-document.addEventListener("DOMContentLoaded", async () => {
-    try {
-        await findLatestForecast();  // sets forecastDate and forecastTime
-        updateImage();
-    } catch (err) {
-        alert("Forecast data not available.");
-        console.error(err);
-    }
-});
-
 // Build and load the image
 function updateImage() {
     const offsetStr = String(offset).padStart(3, "0");
@@ -71,6 +64,16 @@ function updateImage() {
     const imageUrl = `${BASE_URL}/${fileName}`;
 
     document.getElementById("forecast-image").src = imageUrl;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await findLatestForecast();  // sets forecastDate and forecastTime
+        updateImage();
+    } catch (err) {
+        alert("Forecast data not available.");
+        console.error(err);
+    }
 }
 
 // Handle offset changes
