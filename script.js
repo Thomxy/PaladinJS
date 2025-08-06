@@ -33,7 +33,12 @@ async function findLatestForecast() {
         for (const time of times) {
             const filename = `as_${dateStr}-${time}_tcc-rr_si-neighbours_003.png`;
             const url = `${BASE_URL}/${filename}`;
+
+            // 👇 Add this debug line
+            console.log("Trying:", url);
+
             if (await fileExists(url)) {
+                console.log("✔️ Found:", url);
                 forecastDate = dateStr;
                 forecastTime = time;
                 return;
