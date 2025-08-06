@@ -25,7 +25,19 @@
         object-fit: contain;
         display: block;
     }
-
+    .button {
+        font-size: 24px;           /* Bigger text */
+        padding: 12px 20px;        /* Bigger button */
+        margin: 5px;
+        cursor: pointer;
+    }
+    
+    @media (max-width: 768px) {
+        .button {
+            display: none;
+        }
+    }
+    
     /* Portrait: fill width */
     @media (orientation: portrait) {
         img {
@@ -48,11 +60,11 @@
     <div class="image-container">
         <img id="forecast-image" alt="Forecast">
     </div>
-<div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; text-align: center;">
-    <button onclick="changeOffset(-3)">← Offset</button>
-    <button onclick="changeOffset(3)">Offset →</button>
-    <button onclick="changeAltitude(1)">↑ Alt</button>
-    <button onclick="changeAltitude(-1)">Alt ↓</button>
+<div id="buttons" style="text-align: center; margin-top: 10px;">
+    <button class="button" onclick="changeOffset(-3)">← Back</button>
+    <button class="button" onclick="changeOffset(3)">Forward →</button>
+    <button class="button" onclick="changeAltitude(-1)">↑ Up</button>
+    <button class="button" onclick="changeAltitude(1)">↓ Down</button>
 </div>
 <script src="script.js"></script>
 </body>
