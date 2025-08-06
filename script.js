@@ -1,13 +1,54 @@
 // Forecast state
+const BASE_URL = "https://meteo.arso.gov.si/uploads/probase/www/model/aladin/field";
 const altitudes = ["tcc-rr", "vf500m", "vf1000m", "vf1500m", "vf2000m", "vf2500m", "vf3000m", "vf4000m", "vf5500m"];
 const MIN_OFFSET = 3;
 const MAX_OFFSET = 72;
 const OFFSET_STEP = 3;
+const pad = n => n.toString().padStart(2, '0');
 
-let date = "20250805";       // fixed for now
-let time = "0000";           // fixed for now
 let offset = MIN_OFFSET;     // starts at 3h
 let altitudeIndex = 0;       // index in the altitudes list
+let forecastDate = null;     // e.g. "20250806"
+let forecastTime = null;     // "1200" or "0000"
+
+function getDateString(date) {
+    return date.getFullYear().toString() +
+           pad(date.getMonth() + 1) +
+           pad(date.getDate());
+}
+
+async function fileExists(url) {
+    try {
+        const response = await fetch(url, { method: 'HEAD' });
+        return response.ok;
+    } catch {
+        return false;
+    }
+}
+
+async function findLatestForecast() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const dates = [today, yesterday];
+    const times = ["1200", "0000"];
+
+    for (const d of dates) {
+        const dateStr = getDateString(d);
+        for (const time of times) {
+            const filename = `as_${dateStr}-${time}_tcc-rr_si-neighbours_003.png`;
+            const url = `${BASE_URL}/${filename}`;
+            if (await fileExists(url)) {
+                forecastDate = dateStr;
+                forecastTime = time;
+                return;
+            }
+        }
+    }
+
+    throw new Error("No valid forecast base found.");
+}
 
 // Load initial image
 updateImage();
