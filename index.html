@@ -13,25 +13,50 @@
         overflow: hidden;
     }
 
-    .image-container {
+    .wrapper {
+        position: relative;
         height: 100vh;
         width: 100vw;
+        overflow: hidden;
+    }
+    
+    .image-container {
+        height: 100%;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-
+    
     img {
         object-fit: contain;
         display: block;
     }
+    
+    /* Buttons over the image */
+    #buttons {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 10;
+    }
+    
     .button {
-        font-size: 24px;           /* Bigger text */
-        padding: 12px 20px;        /* Bigger button */
+        font-size: 24px;
+        padding: 12px 20px;
         margin: 5px;
         cursor: pointer;
     }
-
+    
+    /* Hide buttons on small screens (phones) */
+    @media (max-width: 768px) {
+        .button {
+            display: none;
+        }
+    }
+    
     /* Portrait: fill width */
     @media (orientation: portrait) {
         img {
@@ -39,7 +64,7 @@
             height: auto;
         }
     }
-
+    
     /* Landscape: fill height */
     @media (orientation: landscape) {
         img {
@@ -51,16 +76,18 @@
 
 </head>
 <body>
+  <div class="wrapper">
     <div class="image-container">
-        <img id="forecast-image" alt="Forecast">
+      <img id="forecast-image" alt="Forecast">
     </div>
-<div id="buttons" style="text-align: center; margin-top: 10px;">
-    <button class="button" onclick="changeOffset(-3)">← Back</button>
-    <button class="button" onclick="changeOffset(3)">Forward →</button>
-    <button class="button" onclick="changeAltitude(-1)">↑ Up</button>
-    <button class="button" onclick="changeAltitude(1)">↓ Down</button>
-</div>
-<script src="script.js"></script>
+    <div id="buttons">
+      <button class="button" onclick="changeOffset(-3)">← Back</button>
+      <button class="button" onclick="changeOffset(3)">Forward →</button>
+      <button class="button" onclick="changeAltitude(-1)">↑ Up</button>
+      <button class="button" onclick="changeAltitude(1)">↓ Down</button>
+    </div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
 
