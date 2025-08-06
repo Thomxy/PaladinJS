@@ -49,6 +49,23 @@
         margin: 3px;
         cursor: pointer;
     }
+
+    #controls div {
+      position: absolute;
+      font-size: 40px;
+      color: white;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      padding: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    
+    #up    { top: 20px;    left: 50%; transform: translateX(-50%); }
+    #down  { bottom: 20px; left: 50%; transform: translateX(-50%); }
+    #left  { top: 50%;     left: 20px; transform: translateY(-50%); }
+    #right { top: 50%;     right: 20px; transform: translateY(-50%); }
+
     
     /* Hide buttons on small screens (phones) */
     @media (max-width: 768px) {
@@ -80,11 +97,11 @@
     <div class="image-container">
       <img id="forecast-image" alt="Forecast">
     </div>
-    <div id="buttons">
-      <button class="button" onclick="changeOffset(-3)">← Back</button>
-      <button class="button" onclick="changeOffset(3)">Forward →</button>
-      <button class="button" onclick="changeAltitude(1)">↑ Up</button>
-      <button class="button" onclick="changeAltitude(-1)">↓ Down</button>
+    <div id="controls">
+      <div id="up"    onclick="changeAltitude(-1)">↑</div>
+      <div id="down"  onclick="changeAltitude(1)">↓</div>
+      <div id="left"  onclick="changeOffset(-3)">←</div>
+      <div id="right" onclick="changeOffset(3)">→</div>
     </div>
   </div>
   <script src="script.js"></script>
