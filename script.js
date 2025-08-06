@@ -89,4 +89,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Forecast data not available.");
         console.error(err);
     }
-}
+});
