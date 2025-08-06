@@ -53,15 +53,24 @@ async function findLatestForecast() {
 // Load initial image
 updateImage();
 
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        await findLatestForecast();  // sets forecastDate and forecastTime
+        updateImage();
+    } catch (err) {
+        alert("Forecast data not available.");
+        console.error(err);
+    }
+});
+
 // Build and load the image
 function updateImage() {
     const offsetStr = String(offset).padStart(3, "0");
     const altitude = altitudes[altitudeIndex];
-    const fileName = `as_${date}-${time}_${altitude}_si-neighbours_${offsetStr}.png`;
-    const imageUrl = `https://meteo.arso.gov.si/uploads/probase/www/model/aladin/field/${fileName}`;
-    
-    const img = document.getElementById("forecast-image");
-    img.src = imageUrl;
+    const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
+    const imageUrl = `${BASE_URL}/${fileName}`;
+
+    document.getElementById("forecast-image").src = imageUrl;
 }
 
 // Handle offset changes
