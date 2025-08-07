@@ -111,7 +111,7 @@ document.addEventListener('touchend', e => {
             updateImage();
         } else if (deltaY < -50) {
             altitudeIndex = Math.min(altitudes.length - 1, altitudeIndex + 1);
-            loadImage();
+            uploadImage();
         }
     }
 });
