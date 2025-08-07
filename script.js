@@ -86,6 +86,36 @@ function changeAltitude(direction) {
     }
 }
 
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+});
+
+document.addEventListener('touchend', e => {
+    const deltaX = e.changedTouches[0].screenX - touchStartX;
+    const deltaY = e.changedTouches[0].screenY - touchStartY;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 50) {
+            offset = Math.max(MIN_OFFSET, offset - OFFSET_STEP);
+            updateImage();
+        } else if (deltaX < -50) {
+            if (offset < MAX_OFFSET) {
+                offset += OFFSET_STEP;
+                updateImage();
+            }
+        }
+    } else {
+        if (deltaY > 50) {
+            altitudeIndex = Math.max(0, altitudeIndex - 1);
+            updateImage();
+        } else if (deltaY < -50) {
+            altitudeIndex = Math.min(altitudes.length - 1, altitudeIndex + 1);
+            loadImage();
+        }
+    }
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await findLatestForecast();  // sets forecastDate and forecastTime
