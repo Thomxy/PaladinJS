@@ -48,11 +48,15 @@
     #arrow-left { left: 10px; top: 50%; transform: translateY(-50%) rotate(180deg); }
     #arrow-right { right: 10px; top: 50%; transform: translateY(-50%); }
     #arrow-up { top: 10px; left: 50%; transform: translateX(-50%) rotate(270deg); }
-    #arrow-down { bottom: 10px; left: 50%; transform: translateX(-50%); rotate(90deg); }
+    ##arrow-down {
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) rotate(90deg);
+    }
     
     /* Hide buttons on small screens (phones) */
     @media (max-width: 768px) {
-        .button {
+        .arrow {
             display: none;
         }
     }
