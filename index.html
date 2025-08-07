@@ -45,13 +45,13 @@
         opacity: 1;
     }
 
-    #arrow-left { left: 10px; top: 50%; transform: translateY(-50%) rotate(180deg); }
+    #arrow-left  { left: 10px; top: 50%; transform: translateY(-50%) rotate(180deg); }
     #arrow-right { right: 10px; top: 50%; transform: translateY(-50%); }
-    #arrow-up { top: 10px; left: 50%; transform: translateX(-50%) rotate(270deg); }
-    #arrow-down { bottom: 10px; left: 50%; transform: translateX(-50%) rotate(90deg); }
+    #arrow-up    { top: 10px; left: 45%; transform: translateX(-100%) rotate(270deg); }
+    #arrow-down  { top: 10px; left: 55%; transform: translateX(0%) rotate(90deg); }
     
     /* Hide buttons on small screens (phones) */
-    @media (max-width: 768px) {
+    @media (pointer: coarse) {
         .arrow {
             display: none;
         }
