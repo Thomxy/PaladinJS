@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Paladin – Static Test</title>
+    <title>PaladinJS</title>
     
 <style>
     html, body {
@@ -13,16 +13,10 @@
         overflow: hidden;
     }
 
-    .wrapper {
+    .image-container {
         position: relative;
         height: 100vh;
         width: 100vw;
-        overflow: hidden;
-    }
-    
-    .image-container {
-        height: 100%;
-        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -30,42 +24,28 @@
     
     img {
         object-fit: contain;
-        display: block;
+        max-width: 100%;
+        max-height: 100%;
     }
-    
-    /* Buttons over the image */
-    #buttons {
+
+    .arrow {
         position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        text-align: center;
+        width: 40px;
+        height: 40px;
+        fill: white;
+        opacity: 0.8;
+        cursor: pointer;
         z-index: 10;
     }
-    
-    .button {
-        font-size: 18px;
-        padding: 10px 16px;
-        margin: 3px;
-        cursor: pointer;
+
+    .arrow:hover {
+        opacity: 1;
     }
 
-    #controls div {
-      position: absolute;
-      font-size: 40px;
-      color: white;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 50%;
-      padding: 10px;
-      cursor: pointer;
-      user-select: none;
-    }
-    
-    #up    { top: 20px;    left: 50%; transform: translateX(-50%); }
-    #down  { bottom: 20px; left: 50%; transform: translateX(-50%); }
-    #left  { top: 50%;     left: 20px; transform: translateY(-50%); }
-    #right { top: 50%;     right: 20px; transform: translateY(-50%); }
-
+    #arrow-left { left: 10px; top: 50%; transform: translateY(-50%) rotate(180deg); }
+    #arrow-right { right: 10px; top: 50%; transform: translateY(-50%); }
+    #arrow-up { top: 10px; left: 50%; transform: translateX(-50%) rotate(180deg); }
+    #arrow-down { bottom: 10px; left: 50%; transform: translateX(-50%); }
     
     /* Hide buttons on small screens (phones) */
     @media (max-width: 768px) {
@@ -73,38 +53,28 @@
             display: none;
         }
     }
-    
-    /* Portrait: fill width */
-    @media (orientation: portrait) {
-        img {
-            width: 100%;
-            height: auto;
-        }
-    }
-    
-    /* Landscape: fill height */
-    @media (orientation: landscape) {
-        img {
-            height: 100%;
-            width: auto;
-        }
-    }
 </style>
 
 </head>
 <body>
-  <div class="wrapper">
     <div class="image-container">
-      <img id="forecast-image" alt="Forecast">
+        <img id="forecast-image" alt="Forecast">
+
+        <svg id="arrow-left" class="arrow" onclick="changeOffset(-3)" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
+        <svg id="arrow-right" class="arrow" onclick="changeOffset(3)" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
+        <svg id="arrow-up" class="arrow" onclick="changeAltitude(1)" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
+        <svg id="arrow-down" class="arrow" onclick="changeAltitude(-1)" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+        </svg>
     </div>
-    <div id="controls">
-      <div id="up"    onclick="changeAltitude(-1)">↑</div>
-      <div id="down"  onclick="changeAltitude(1)">↓</div>
-      <div id="left"  onclick="changeOffset(-3)">←</div>
-      <div id="right" onclick="changeOffset(3)">→</div>
-    </div>
-  </div>
-  <script src="script.js"></script>
+
+    <script src="script.js"></script>
 </body>
 </html>
 
