@@ -88,33 +88,26 @@ function changeAltitude(direction) {
 
 let touchStartX = 0;
 let touchStartY = 0;
-let isPinching = false;
-
-const imgElement = document.getElementById("forecast-image");
 
 document.addEventListener("touchstart", e => {
     if (e.touches.length > 1) {
-        isPinching = true;
-        imgElement.style.touchAction = "auto"; // allow pinch zoom and move
-    } else {
-        isPinching = false;
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        imgElement.style.touchAction = "none"; // prevent dragging image
+        // Pinch/zoom gesture — do nothing
+        return;
     }
+
+    // One finger — maybe a swipe
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
 });
 
 document.addEventListener("touchend", e => {
-    if (isPinching) {
-        return; // Don't do anything, user was zooming
-    }
+    if (e.changedTouches.length > 1) return; // ignore multi-touch end
 
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
 
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
-
     const threshold = 50;
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
