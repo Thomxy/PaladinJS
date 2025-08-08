@@ -86,32 +86,33 @@ function changeAltitude(direction) {
     }
 }
 
-let activeTouches = 0;
+let touchStartX = 0;
+let touchStartY = 0;
+let isMultiTouch = false;
 
-document.addEventListener('touchstart', e => {
-    activeTouches = e.touches.length;
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}, { passive: false });
-
-document.addEventListener('touchmove', e => {
-    if (activeTouches === 1) {
-        e.preventDefault();  // Prevent scrolling image with one finger
+document.addEventListener("touchstart", e => {
+    isMultiTouch = e.touches.length > 1;  // Check if two fingers are used
+    if (!isMultiTouch) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
     }
-}, { passive: false });
+});
 
-document.addEventListener('touchend', e => {
-    if (e.changedTouches.length !== 1) return;
+document.addEventListener("touchend", e => {
+    if (isMultiTouch) return;  // Do nothing if it was a multi-touch gesture
 
-    const deltaX = e.changedTouches[0].clientX - touchStartX;
-    const deltaY = e.changedTouches[0].clientY - touchStartY;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 50) changeOffset(-3);
-        else if (deltaX < -50) changeOffset(3);
+        if (deltaX > 50) changeOffset(-OFFSET_STEP);   // swipe right → back
+        else if (deltaX < -50) changeOffset(OFFSET_STEP);  // swipe left → forward
     } else {
-        if (deltaY > 50) changeAltitude(-1);
-        else if (deltaY < -50) changeAltitude(1);
+        if (deltaY > 50) changeAltitude(-1);  // swipe down → lower altitude
+        else if (deltaY < -50) changeAltitude(1);  // swipe up → higher altitude
     }
 });
 
