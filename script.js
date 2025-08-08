@@ -89,19 +89,23 @@ function changeAltitude(direction) {
 let touchStartX = 0;
 let touchStartY = 0;
 let gestureIsMultiTouch = false;
+let wasZoomed = false;
 
 document.addEventListener("touchstart", e => {
     if (e.touches.length > 1) {
-        gestureIsMultiTouch = true; // Multi-touch detected
+        gestureIsMultiTouch = true;
+        wasZoomed = isZoomed();  // Track if image is zoomed
     } else if (e.touches.length === 1) {
-        gestureIsMultiTouch = false; // Single-touch start
+        gestureIsMultiTouch = false;
+        wasZoomed = isZoomed();
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
     }
 });
 
 document.addEventListener("touchend", e => {
-    if (gestureIsMultiTouch) return; // Entire gesture was multi-touch → do nothing
+    // If the gesture involved two fingers, or the image is zoomed, do not change image
+    if (gestureIsMultiTouch || wasZoomed) return;
 
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
@@ -117,6 +121,11 @@ document.addEventListener("touchend", e => {
         else if (deltaY < -50) changeAltitude(1);
     }
 });
+
+function isZoomed() {
+    const img = document.getElementById("forecast-image");
+    return img.naturalWidth > img.clientWidth + 5 || img.naturalHeight > img.clientHeight + 5;
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
