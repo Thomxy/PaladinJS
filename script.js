@@ -86,33 +86,32 @@ function changeAltitude(direction) {
     }
 }
 
+let activeTouches = 0;
+
 document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-    touchStartY = e.changedTouches[0].screenY;
-});
+    activeTouches = e.touches.length;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+}, { passive: false });
+
+document.addEventListener('touchmove', e => {
+    if (activeTouches === 1) {
+        e.preventDefault();  // Prevent scrolling image with one finger
+    }
+}, { passive: false });
 
 document.addEventListener('touchend', e => {
-    const deltaX = e.changedTouches[0].screenX - touchStartX;
-    const deltaY = e.changedTouches[0].screenY - touchStartY;
+    if (e.changedTouches.length !== 1) return;
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX;
+    const deltaY = e.changedTouches[0].clientY - touchStartY;
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 50) {
-            offset = Math.max(MIN_OFFSET, offset - OFFSET_STEP);
-            updateImage();
-        } else if (deltaX < -50) {
-            if (offset < MAX_OFFSET) {
-                offset += OFFSET_STEP;
-                updateImage();
-            }
-        }
+        if (deltaX > 50) changeOffset(-3);
+        else if (deltaX < -50) changeOffset(3);
     } else {
-        if (deltaY > 50) {
-            altitudeIndex = Math.max(0, altitudeIndex - 1);
-            updateImage();
-        } else if (deltaY < -50) {
-            altitudeIndex = Math.min(altitudes.length - 1, altitudeIndex + 1);
-            updateImage();
-        }
+        if (deltaY > 50) changeAltitude(-1);
+        else if (deltaY < -50) changeAltitude(1);
     }
 });
 
