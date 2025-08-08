@@ -86,23 +86,6 @@ function changeAltitude(direction) {
     }
 }
 
-// document.addEventListener('touchmove', function(e) {
-//     e.preventDefault();
-//}, { passive: false });
-let maybeRefreshing = false;
-window.addEventListener('touchstart', (e) => {
-    if (window.scrollY === 0 && e.touches[0].clientY > 0) {
-        maybeRefreshing = true;
-    } else {
-        maybeRefreshing = false;
-    }
-}, { passive: true });
-window.addEventListener('touchmove', (e) => {
-    if (maybeRefreshing && e.touches[0].clientY > 10) {
-        e.preventDefault();  // Prevent pull-to-refresh
-    }
-}, { passive: false });
-
 document.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
     touchStartY = e.changedTouches[0].screenY;
