@@ -88,18 +88,20 @@ function changeAltitude(direction) {
 
 let touchStartX = 0;
 let touchStartY = 0;
-let isMultiTouch = false;
+let gestureIsMultiTouch = false;
 
 document.addEventListener("touchstart", e => {
-    isMultiTouch = e.touches.length > 1;  // Check if two fingers are used
-    if (!isMultiTouch) {
+    if (e.touches.length > 1) {
+        gestureIsMultiTouch = true; // Multi-touch detected
+    } else if (e.touches.length === 1) {
+        gestureIsMultiTouch = false; // Single-touch start
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
     }
 });
 
 document.addEventListener("touchend", e => {
-    if (isMultiTouch) return;  // Do nothing if it was a multi-touch gesture
+    if (gestureIsMultiTouch) return; // Entire gesture was multi-touch → do nothing
 
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
@@ -108,11 +110,11 @@ document.addEventListener("touchend", e => {
     const deltaY = touchEndY - touchStartY;
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 50) changeOffset(-OFFSET_STEP);   // swipe right → back
-        else if (deltaX < -50) changeOffset(OFFSET_STEP);  // swipe left → forward
+        if (deltaX > 50) changeOffset(-OFFSET_STEP);
+        else if (deltaX < -50) changeOffset(OFFSET_STEP);
     } else {
-        if (deltaY > 50) changeAltitude(-1);  // swipe down → lower altitude
-        else if (deltaY < -50) changeAltitude(1);  // swipe up → higher altitude
+        if (deltaY > 50) changeAltitude(-1);
+        else if (deltaY < -50) changeAltitude(1);
     }
 });
 
