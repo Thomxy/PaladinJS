@@ -88,19 +88,26 @@ function changeAltitude(direction) {
 
 let touchStartX = 0;
 let touchStartY = 0;
-let gestureIsMultiTouch = false;
+let isPinching = false;
+
+const imgElement = document.getElementById("forecast-image");
 
 document.addEventListener("touchstart", e => {
-    gestureIsMultiTouch = e.touches.length > 1;
-    if (!gestureIsMultiTouch && e.touches.length === 1) {
+    if (e.touches.length > 1) {
+        isPinching = true;
+        imgElement.style.touchAction = "auto"; // allow pinch zoom and move
+    } else {
+        isPinching = false;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
+        imgElement.style.touchAction = "none"; // prevent dragging image
     }
 });
 
 document.addEventListener("touchend", e => {
-    // If it was a two-finger gesture, ignore it completely
-    if (gestureIsMultiTouch) return;
+    if (isPinching) {
+        return; // Don't do anything, user was zooming
+    }
 
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
@@ -108,23 +115,14 @@ document.addEventListener("touchend", e => {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
 
-    const threshold = 50; // Minimum movement to count as a swipe
-    if (Math.abs(deltaX) < threshold && Math.abs(deltaY) < threshold) return;
+    const threshold = 50;
 
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Horizontal swipe
-        if (deltaX > 0) {
-            changeOffset(-OFFSET_STEP);
-        } else {
-            changeOffset(OFFSET_STEP);
-        }
+        if (deltaX > threshold) changeOffset(-OFFSET_STEP);
+        else if (deltaX < -threshold) changeOffset(OFFSET_STEP);
     } else {
-        // Vertical swipe
-        if (deltaY > 0) {
-            changeAltitude(-1);
-        } else {
-            changeAltitude(1);
-        }
+        if (deltaY > threshold) changeAltitude(-1);
+        else if (deltaY < -threshold) changeAltitude(1);
     }
 });
 
