@@ -89,23 +89,18 @@ function changeAltitude(direction) {
 let touchStartX = 0;
 let touchStartY = 0;
 let gestureIsMultiTouch = false;
-let wasZoomed = false;
 
 document.addEventListener("touchstart", e => {
-    if (e.touches.length > 1) {
-        gestureIsMultiTouch = true;
-        wasZoomed = isZoomed();  // Track if image is zoomed
-    } else if (e.touches.length === 1) {
-        gestureIsMultiTouch = false;
-        wasZoomed = isZoomed();
+    gestureIsMultiTouch = e.touches.length > 1;
+    if (!gestureIsMultiTouch && e.touches.length === 1) {
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
     }
 });
 
 document.addEventListener("touchend", e => {
-    // If the gesture involved two fingers, or the image is zoomed, do not change image
-    if (gestureIsMultiTouch || wasZoomed) return;
+    // If it was a two-finger gesture, ignore it completely
+    if (gestureIsMultiTouch) return;
 
     const touchEndX = e.changedTouches[0].clientX;
     const touchEndY = e.changedTouches[0].clientY;
@@ -113,19 +108,25 @@ document.addEventListener("touchend", e => {
     const deltaX = touchEndX - touchStartX;
     const deltaY = touchEndY - touchStartY;
 
+    const threshold = 50; // Minimum movement to count as a swipe
+    if (Math.abs(deltaX) < threshold && Math.abs(deltaY) < threshold) return;
+
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 50) changeOffset(-OFFSET_STEP);
-        else if (deltaX < -50) changeOffset(OFFSET_STEP);
+        // Horizontal swipe
+        if (deltaX > 0) {
+            changeOffset(-OFFSET_STEP);
+        } else {
+            changeOffset(OFFSET_STEP);
+        }
     } else {
-        if (deltaY > 50) changeAltitude(-1);
-        else if (deltaY < -50) changeAltitude(1);
+        // Vertical swipe
+        if (deltaY > 0) {
+            changeAltitude(-1);
+        } else {
+            changeAltitude(1);
+        }
     }
 });
-
-function isZoomed() {
-    const img = document.getElementById("forecast-image");
-    return img.naturalWidth > img.clientWidth + 5 || img.naturalHeight > img.clientHeight + 5;
-}
 
 document.addEventListener("DOMContentLoaded", async () => {
     try {
