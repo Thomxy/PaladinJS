@@ -19,6 +19,7 @@ let lastTranslateY = 0;
 let startPanX = 0;
 let startPanY = 0;
 let isTwoFingerPanning = false;
+let lastTouchDistance = 0;
 
 // ===== HELPERS =====
 function pad(n, length = 2) {
@@ -166,30 +167,46 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }, { passive: false });
 
-        image.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 2 && lastScale > 1) {
-            isTwoFingerPanning = true;
-            const midpoint = getMidpoint(e.touches);
-            startPanX = midpoint.x - lastTranslateX;
-            startPanY = midpoint.y - lastTranslateY;
-          }
+        container.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDistance = Math.hypot(dx, dy);
+                lastPanX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                lastPanY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+            }
         });
         
-        image.addEventListener('touchmove', (e) => {
-          if (isTwoFingerPanning && e.touches.length === 2) {
-            e.preventDefault();
+        container.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const distance = Math.hypot(dx, dy);
         
-            const midpoint = getMidpoint(e.touches);
-            let translateX = midpoint.x - startPanX;
-            let translateY = midpoint.y - startPanY;
+                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
         
-            // Optional: clamp translateX and translateY here to limits
+                // Decide: zoom or pan?
+                if (Math.abs(distance - lastTouchDistance) > 5) {
+                    // Zoom gesture
+                    const scaleChange = distance / lastTouchDistance;
+                    currentScale *= scaleChange;
+                    currentScale = Math.min(Math.max(currentScale, 1), 4);
+                    lastTouchDistance = distance;
+                } else {
+                    // Pan gesture
+                    const deltaX = centerX - lastPanX;
+                    const deltaY = centerY - lastPanY;
+                    currentTranslateX += deltaX;
+                    currentTranslateY += deltaY;
+                    lastPanX = centerX;
+                    lastPanY = centerY;
+                }
         
-            lastTranslateX = translateX;
-            lastTranslateY = translateY;
-        
-            image.style.transform = `scale(${lastScale}) translate(${translateX}px, ${translateY}px)`;
-          }
+                updateImageTransform();
+            }
         }, { passive: false });
         
         image.addEventListener('touchend', (e) => {
