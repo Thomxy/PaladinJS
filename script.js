@@ -174,8 +174,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 let deltaY = currentMidpoint.y - lastMidpoint.y;
 
                 // Update translate position factoring scale
-                lastTranslateX += deltaX / newScale; // divide to keep pan consistent with zoom
-                lastTranslateY += deltaY / newScale;
+                lastTranslateX += deltaX;
+                lastTranslateY += deltaY;
 
                 // Apply transform
                 image.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(${newScale})`;
