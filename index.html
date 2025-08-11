@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>PaladinJS</title>
-    
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>PaladinJS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
     html, body {
@@ -22,18 +21,19 @@
         display: flex;
         align-items: center;
         justify-content: center;
-    
-    img {
+    }
+
+    .image-container img {
         width: 100%;
         height: 100%;
         object-fit: contain;
         display: block;
-        
         touch-action: pan-x pan-y pinch-zoom;
         user-select: none;
         -webkit-user-drag: none;
     }
 
+    /* Arrow buttons */
     .arrow {
         position: absolute;
         width: 40px;
@@ -44,45 +44,50 @@
         opacity: 0.8;
         cursor: pointer;
         z-index: 10;
+        top: 50%;
+        transform: translateY(-50%);
     }
+    .arrow:hover { opacity: 1; }
 
-    .arrow:hover {
-        opacity: 1;
-    }
+    /* Individual arrow positions & rotations */
+    #arrow-left  { right: 60px; transform: translateY(-50%) rotate(180deg); }
+    #arrow-right { right: 10px; }
+    #arrow-up    { right: 35px; transform: translateY(-100%) rotate(270deg); }
+    #arrow-down  { right: 35px; transform: rotate(90deg); }
 
-    #arrow-left  { top: 50%; right: 60px; left: auto; transform: translateY(-50%) rotate(180deg); }
-    #arrow-right { top: 50%; right: 10px; left: auto; transform: translateY(-50%); }
-    #arrow-up    { top: 50%;  right: 35px; left: auto; transform: translateY(-100%) rotate(270deg); }
-    #arrow-down  { top: 50%;  right: 35px; left: auto; transform: rotate(90deg); }
-    
-    /* Hide buttons on small screens (phones) */
+    /* Hide arrows on touch devices */
     @media (pointer: coarse) {
-        .arrow {
-            display: none;
-        }
+        .arrow { display: none; }
     }
 </style>
-
 </head>
+
 <body>
     <div class="image-container">
         <img id="forecast-image" alt="Forecast">
 
-        <svg id="arrow-left" class="arrow" onclick="changeOffset(-3)" viewBox="0 0 24 24">
+        <!-- Same SVG path reused for all directions -->
+        <svg id="arrow-left" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-        <svg id="arrow-right" class="arrow" onclick="changeOffset(3)" viewBox="0 0 24 24">
+        <svg id="arrow-right" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-        <svg id="arrow-up" class="arrow" onclick="changeAltitude(1)" viewBox="0 0 24 24">
+        <svg id="arrow-up" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-        <svg id="arrow-down" class="arrow" onclick="changeAltitude(-1)" viewBox="0 0 24 24">
+        <svg id="arrow-down" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        // Attach click handlers without inline JS
+        document.getElementById("arrow-left").addEventListener("click", () => changeOffset(-OFFSET_STEP));
+        document.getElementById("arrow-right").addEventListener("click", () => changeOffset(OFFSET_STEP));
+        document.getElementById("arrow-up").addEventListener("click", () => changeAltitude(1));
+        document.getElementById("arrow-down").addEventListener("click", () => changeAltitude(-1));
+    </script>
 </body>
 </html>
-
