@@ -14,6 +14,11 @@ let forecastDate = null;
 let forecastTime = null;
 let lastScale = 1;
 let initialDistance = null;
+let lastTranslateX = 0;
+let lastTranslateY = 0;
+let startPanX = 0;
+let startPanY = 0;
+let isTwoFingerPanning = false;
 
 // ===== HELPERS =====
 function pad(n, length = 2) {
@@ -129,6 +134,14 @@ document.addEventListener('touchcancel', () => {
     touchMoved = false;
 });
 
+function getMidpoint(touches) {
+  const [a, b] = touches;
+  return {
+    x: (a.clientX + b.clientX) / 2,
+    y: (a.clientY + b.clientY) / 2
+  };
+}
+
 // ===== INIT =====
 document.addEventListener("DOMContentLoaded", async () => {
     try {
@@ -152,6 +165,42 @@ document.addEventListener("DOMContentLoaded", async () => {
                 image.style.transform = `scale(${newScale})`;
             }
         }, { passive: false });
+
+        image.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 2 && lastScale > 1) {
+            isTwoFingerPanning = true;
+            const midpoint = getMidpoint(e.touches);
+            startPanX = midpoint.x - lastTranslateX;
+            startPanY = midpoint.y - lastTranslateY;
+          }
+        });
+        
+        image.addEventListener('touchmove', (e) => {
+          if (isTwoFingerPanning && e.touches.length === 2) {
+            e.preventDefault();
+        
+            const midpoint = getMidpoint(e.touches);
+            let translateX = midpoint.x - startPanX;
+            let translateY = midpoint.y - startPanY;
+        
+            // Optional: clamp translateX and translateY here to limits
+        
+            lastTranslateX = translateX;
+            lastTranslateY = translateY;
+        
+            image.style.transform = `scale(${lastScale}) translate(${translateX}px, ${translateY}px)`;
+          }
+        }, { passive: false });
+        
+        image.addEventListener('touchend', (e) => {
+          if (e.touches.length < 2) {
+            isTwoFingerPanning = false;
+          }
+        });
+        
+        image.addEventListener('touchcancel', () => {
+          isTwoFingerPanning = false;
+        });
 
         image.addEventListener('touchend', (e) => {
             if (initialDistance && e.touches.length < 2) {
