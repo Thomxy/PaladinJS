@@ -5,12 +5,15 @@ const MIN_OFFSET = 3;
 const MAX_OFFSET = 72;
 const OFFSET_STEP = 3;
 const SWIPE_THRESHOLD = 40; // px
+const image = document.getElementById('forecast-image');
 
 // ===== STATE =====
 let offset = MIN_OFFSET;
 let altitudeIndex = 0;
 let forecastDate = null;
 let forecastTime = null;
+let lastScale = 1;
+let initialDistance = null;
 
 // ===== HELPERS =====
 function pad(n, length = 2) {
@@ -131,8 +134,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
         await findLatestForecast();
         updateImage();
+
+        // === PINCH ZOOM HANDLERS ===
+        image.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                initialDistance = getDistance(e.touches);
+            }
+        }, { passive: false });
+
+        image.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2 && initialDistance) {
+                e.preventDefault(); // prevent page zoom + scroll
+                const currentDistance = getDistance(e.touches);
+                const scaleChange = currentDistance / initialDistance;
+                let newScale = lastScale * scaleChange;
+                newScale = Math.min(Math.max(newScale, 1), 5); // clamp 1..5
+                image.style.transform = `scale(${newScale})`;
+            }
+        }, { passive: false });
+
+        image.addEventListener('touchend', (e) => {
+            if (initialDistance && e.touches.length < 2) {
+                // Save last scale
+                const style = window.getComputedStyle(image);
+                const matrix = style.transform || style.webkitTransform || style.mozTransform;
+                if (matrix && matrix !== 'none') {
+                    const values = matrix.match(/matrix.*\((.+)\)/)[1].split(', ');
+                    lastScale = parseFloat(values[0]); // scaleX
+                } else {
+                    lastScale = 1;
+                }
+                initialDistance = null;
+            }
+        });
+
     } catch (err) {
         alert("Forecast data not available.");
         console.error(err);
     }
 });
+
+// Helper function to get distance between two touches (put it anywhere in the file)
+function getDistance(touches) {
+    const [a, b] = touches;
+    return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+}
