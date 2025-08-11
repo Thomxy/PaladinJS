@@ -86,37 +86,73 @@ function changeAltitude(direction) {
     }
 }
 
+// gesture helpers
 let touchStartX = 0;
 let touchStartY = 0;
+let touchMoved = false;
+let gestureBeganMultiTouch = false;
 
-document.addEventListener("touchstart", e => {
-    if (e.touches.length > 1) {
-        // Pinch/zoom gesture — do nothing
-        return;
-    }
-
-    // One finger — maybe a swipe
+// touchstart: mark if the gesture has >1 finger or store start coords for single-finger
+document.addEventListener('touchstart', (e) => {
+  if (e.touches.length > 1) {
+    gestureBeganMultiTouch = true;
+  } else {
+    gestureBeganMultiTouch = false;
+    touchMoved = false;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
-});
+  }
+}, { passive: true });
 
-document.addEventListener("touchend", e => {
-    if (e.changedTouches.length > 1) return; // ignore multi-touch end
+// touchmove: if single-finger, prevent default (blocks browser one-finger pan) and mark moved.
+// For multi-touch, do not preventDefault so browser can handle pinch + two-finger pan.
+document.addEventListener('touchmove', (e) => {
+  if (e.touches.length === 1) {
+    // prevent the browser from panning the zoomed image with one finger
+    e.preventDefault();          // NEEDS passive:false on this listener (done below)
+    touchMoved = true;
+  } else {
+    // multi-touch in progress: remember the gesture involved >1 finger
+    gestureBeganMultiTouch = true;
+  }
+}, { passive: false });
 
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-    const threshold = 50;
-
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > threshold) changeOffset(-OFFSET_STEP);
-        else if (deltaX < -threshold) changeOffset(OFFSET_STEP);
-    } else {
-        if (deltaY > threshold) changeAltitude(-1);
-        else if (deltaY < -threshold) changeAltitude(1);
+// touchend: if the gesture ever had >1 finger, ignore it (pinch/2-finger pan).
+// Otherwise, if there was a meaningful single-finger move, treat it as a swipe.
+document.addEventListener('touchend', (e) => {
+  // Clean-up: if gesture was multi-touch, reset the flag and do nothing
+  if (gestureBeganMultiTouch) {
+    // if no more touches are active, reset for next gesture
+    if (!e.touches || e.touches.length === 0) {
+      gestureBeganMultiTouch = false;
     }
+    return;
+  }
+
+  // if no meaningful move, ignore (taps etc.)
+  if (!touchMoved) return;
+
+  // compute movement delta using the first changed touch
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  const threshold = 40; // adjust sensitivity if you want
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    // horizontal swipe
+    if (dx > threshold) changeOffset(-OFFSET_STEP);   // swipe right -> back
+    else if (dx < -threshold) changeOffset(OFFSET_STEP); // swipe left -> forward
+  } else {
+    // vertical swipe
+    if (dy > threshold) changeAltitude(-1);   // swipe down -> lower altitude
+    else if (dy < -threshold) changeAltitude(1); // swipe up -> higher altitude
+  }
+}, { passive: true });
+
+// touchcancel: reset flags
+document.addEventListener('touchcancel', () => {
+  gestureBeganMultiTouch = false;
+  touchMoved = false;
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
