@@ -13,9 +13,10 @@ let altitudeIndex = 0;
 let forecastDate = null;
 let forecastTime = null;
 let lastScale = 1;
-let initialDistance = null;
+let initialDistance = 0;
 let lastTranslateX = 0;
 let lastTranslateY = 0;
+let lastMidpoint = { x: 0, y: 0 };
 let startPanX = 0;
 let startPanY = 0;
 let isTwoFingerPanning = false;
@@ -149,88 +150,47 @@ document.addEventListener("DOMContentLoaded", async () => {
         await findLatestForecast();
         updateImage();
 
-        // === PINCH ZOOM HANDLERS ===
         image.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
                 initialDistance = getDistance(e.touches);
+                lastMidpoint = getMidpoint(e.touches);
             }
         }, { passive: false });
 
         image.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2 && initialDistance) {
-                e.preventDefault(); // prevent page zoom + scroll
-                const currentDistance = getDistance(e.touches);
-                const scaleChange = currentDistance / initialDistance;
-                let newScale = lastScale * scaleChange;
-                newScale = Math.min(Math.max(newScale, 1), 5); // clamp 1..5
-                image.style.transform = `scale(${newScale})`;
-            }
-        }, { passive: false });
-
-        container.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                lastTouchDistance = Math.hypot(dx, dy);
-                lastPanX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                lastPanY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-            }
-        });
-        
-        container.addEventListener('touchmove', (e) => {
             if (e.touches.length === 2) {
                 e.preventDefault();
-                
-                const dx = e.touches[0].clientX - e.touches[1].clientX;
-                const dy = e.touches[0].clientY - e.touches[1].clientY;
-                const distance = Math.hypot(dx, dy);
-        
-                const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        
-                // Decide: zoom or pan?
-                if (Math.abs(distance - lastTouchDistance) > 5) {
-                    // Zoom gesture
-                    const scaleChange = distance / lastTouchDistance;
-                    currentScale *= scaleChange;
-                    currentScale = Math.min(Math.max(currentScale, 1), 4);
-                    lastTouchDistance = distance;
-                } else {
-                    // Pan gesture
-                    const deltaX = centerX - lastPanX;
-                    const deltaY = centerY - lastPanY;
-                    currentTranslateX += deltaX;
-                    currentTranslateY += deltaY;
-                    lastPanX = centerX;
-                    lastPanY = centerY;
-                }
-        
-                updateImageTransform();
+
+                const currentDistance = getDistance(e.touches);
+                const currentMidpoint = getMidpoint(e.touches);
+
+                // Calculate scale factor change
+                let scaleChange = currentDistance / initialDistance;
+                let newScale = lastScale * scaleChange;
+                newScale = Math.min(Math.max(newScale, 1), 5);
+
+                // Calculate translation change (pan delta)
+                let deltaX = currentMidpoint.x - lastMidpoint.x;
+                let deltaY = currentMidpoint.y - lastMidpoint.y;
+
+                // Update translate position factoring scale
+                lastTranslateX += deltaX / newScale; // divide to keep pan consistent with zoom
+                lastTranslateY += deltaY / newScale;
+
+                // Apply transform
+                image.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(${newScale})`;
+
+                // Update last states for next event
+                lastScale = newScale;
+                initialDistance = currentDistance;
+                lastMidpoint = currentMidpoint;
             }
         }, { passive: false });
-        
-        image.addEventListener('touchend', (e) => {
-          if (e.touches.length < 2) {
-            isTwoFingerPanning = false;
-          }
-        });
-        
-        image.addEventListener('touchcancel', () => {
-          isTwoFingerPanning = false;
-        });
 
         image.addEventListener('touchend', (e) => {
-            if (initialDistance && e.touches.length < 2) {
-                // Save last scale
-                const style = window.getComputedStyle(image);
-                const matrix = style.transform || style.webkitTransform || style.mozTransform;
-                if (matrix && matrix !== 'none') {
-                    const values = matrix.match(/matrix.*\((.+)\)/)[1].split(', ');
-                    lastScale = parseFloat(values[0]); // scaleX
-                } else {
-                    lastScale = 1;
-                }
-                initialDistance = null;
+            if (e.touches.length < 2) {
+                // Reset initialDistance to prevent jump on next pinch
+                initialDistance = 0;
             }
         });
 
@@ -244,4 +204,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 function getDistance(touches) {
     const [a, b] = touches;
     return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+}
+
+function getMidpoint(touches) {
+    const [a, b] = touches;
+    return {
+        x: (a.clientX + b.clientX) / 2,
+        y: (a.clientY + b.clientY) / 2
+    };
 }
