@@ -20,6 +20,32 @@ let lastTranslateX = 0;
 let lastTranslateY = 0;
 let lastMidpoint = { x: 0, y: 0 };
 let loaderTimer = null;
+let currentLang = localStorage.getItem('lang') || 'en';
+
+const I18N = {
+  en: {
+    weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    tccLabel: 'cloud coverage',
+    helpTitle: 'How to use',
+    helpLi1: 'One finger: swipe left/right to change time; up/down to change altitude.',
+    helpLi2: 'Two fingers: pinch to zoom; drag to pan.',
+    helpEmailPrefix: 'Questions or suggestions? Email',
+    ariaHelp: 'Help',
+    ariaCloseHelp: 'Close help',
+    ariaChangeLang: 'Change language'
+  },
+  si: {
+    weekdays: ['Ned', 'Pon', 'Tor', 'Sre', 'Čet', 'Pet', 'Sob'],
+    tccLabel: 'oblaki',
+    helpTitle: 'Kako uporabljati',
+    helpLi1: 'En prst: poteg levo/desno za spremembo časa; gor/dol za spremembo višine.',
+    helpLi2: 'Dva prsta: ščip za povečavo; povlecite za premik.',
+    helpEmailPrefix: 'Vprašanja ali predlogi? Pišite na',
+    ariaHelp: 'Pomoč',
+    ariaCloseHelp: 'Zapri pomoč',
+    ariaChangeLang: 'Spremeni jezik'
+  }
+};
 
 // ===== HELPERS =====
 function pad(n, length = 2) {
@@ -152,6 +178,16 @@ container.addEventListener('touchcancel', () => {
 
 // ===== INIT =====
 document.addEventListener("DOMContentLoaded", async () => {
+	// Initialize language from saved preference or default
+	setLang(currentLang);
+
+	 // Toggle language on click
+	 const langBtn = document.getElementById('lang-btn');
+	 if (langBtn) {
+		langBtn.addEventListener('click', () => {
+			setLang(currentLang === 'en' ? 'si' : 'en');
+		});
+	 }
     try {
         await findLatestForecast();
 		
@@ -216,6 +252,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Forecast data not available.");
         console.error(err);
     }
+	
+	const helpBtn = document.getElementById('help-btn');
+	const helpOverlay = document.getElementById('help-overlay');
+	const helpClose = document.getElementById('help-close');
+
+	function openHelp() {
+	  helpOverlay.hidden = false;
+	}
+	function closeHelp() {
+	  helpOverlay.hidden = true;
+	}
+
+	helpBtn.addEventListener('click', openHelp);
+	helpClose.addEventListener('click', closeHelp);
+
+	// Click backdrop to close
+	helpOverlay.addEventListener('click', (e) => {
+	  if (e.target === helpOverlay) closeHelp();
+	});
+
+	// Close on Escape
+	document.addEventListener('keydown', (e) => {
+	  if (e.key === 'Escape' && !helpOverlay.hidden) closeHelp();
+	});
 });
 
 // Helper function to get distance between two touches (put it anywhere in the file)
@@ -241,14 +301,11 @@ function updateHeader() {
   const hh = parseInt(forecastTime.slice(0, 2), 10);
   const mm = parseInt(forecastTime.slice(2, 4), 10);
 
-  // Interpret base as UTC, add offset hours in UTC
   const baseUtcMs = Date.UTC(y, m - 1, d, hh, mm);
   const validUtcDate = new Date(baseUtcMs + offset * 3600 * 1000);
 
-  // Format in local CET/CEST without showing the timezone abbreviation
   const fmt = new Intl.DateTimeFormat('en-GB', {
     timeZone: DISPLAY_TZ,
-    weekday: 'short',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -256,18 +313,16 @@ function updateHeader() {
     minute: '2-digit',
     hour12: false
   });
-
   const parts = fmt.formatToParts(validUtcDate);
   const map = {};
-  for (const p of parts) {
-    if (!(p.type in map)) map[p.type] = p.value;
-  }
+  for (const p of parts) if (!(p.type in map)) map[p.type] = p.value;
 
+  const weekdayName = I18N[currentLang].weekdays[validUtcDate.getDay()];
   const curr = {
-    weekday: map.weekday,                               // e.g., "Tue"
-    date: `${map.day}/${map.month}/${map.year}`,        // e.g., "05/01/2022"
-    time: `${map.hour}:${map.minute}`,                  // e.g., "14:00"
-    alt: formatAltitude(ALTITUDES[altitudeIndex])       // e.g., "500m" or "cloud coverage"
+    weekday: weekdayName,
+    date: `${map.day}/${map.month}/${map.year}`,
+    time: `${map.hour}:${map.minute}`,
+    alt: formatAltitude(ALTITUDES[altitudeIndex])
   };
 
   const elWeek = document.getElementById('header-weekday');
@@ -296,9 +351,9 @@ function updateHeader() {
 }
 
 function formatAltitude(code) {
-  if (code === 'tcc-rr') return 'cloud coverage'; // special label
+  if (code === 'tcc-rr') return I18N[currentLang].tccLabel;
   const match = /^vf(\d+m)$/.exec(code);
-  return match ? match[1] : code; // e.g., "vf500m" -> "500m"
+  return match ? match[1] : code;
 }
 
 let prevHeader = {
@@ -363,4 +418,38 @@ function clampAndApplyTransform(nextScale) {
 
   lastScale = s;
   image.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(${lastScale})`;
+}
+
+function updateHelpText() {
+  const t = I18N[currentLang];
+  const title = document.getElementById('help-title');
+  const li1 = document.getElementById('help-li1');
+  const li2 = document.getElementById('help-li2');
+  const emailPrefix = document.getElementById('help-email-prefix');
+  const helpBtn = document.getElementById('help-btn');
+  const helpClose = document.getElementById('help-close');
+
+  if (title) title.textContent = t.helpTitle;
+  if (li1) li1.textContent = t.helpLi1;
+  if (li2) li2.textContent = t.helpLi2;
+  if (emailPrefix) emailPrefix.textContent = t.helpEmailPrefix;
+  if (helpBtn) helpBtn.setAttribute('aria-label', t.ariaHelp);
+  if (helpClose) helpClose.setAttribute('aria-label', t.ariaCloseHelp);
+}
+
+function setLang(lang) {
+  currentLang = lang === 'si' ? 'si' : 'en';
+  localStorage.setItem('lang', currentLang);
+
+  // Update the small label in the language button
+  const code = document.getElementById('lang-code');
+  if (code) code.textContent = currentLang.toUpperCase();
+
+  // Update ARIA label for the language button
+  const langBtn = document.getElementById('lang-btn');
+  if (langBtn) langBtn.setAttribute('aria-label', I18N[currentLang].ariaChangeLang);
+
+  // Refresh header and help texts
+  updateHeader();
+  updateHelpText();
 }
