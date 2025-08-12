@@ -111,6 +111,34 @@
 		.flash {
 		  animation: flashFade 900ms ease-out;
 		}
+		
+		/* Centered loader overlay inside the image container */
+		#loader {
+		  position: absolute;
+		  inset: 0;
+		  display: grid;
+		  place-items: center;
+		  pointer-events: none; /* won’t block gestures or clicks */
+		  z-index: 20;          /* above the image; arrows are typically z-index:10 */
+		}
+
+		#loader[hidden] {
+		  display: none;
+		}
+
+		/* Simple spinner */
+		.spinner {
+		  width: 48px;
+		  height: 48px;
+		  border: 4px solid rgba(0,0,0,0.15);
+		  border-top-color: rgba(0,0,0,0.55);
+		  border-radius: 50%;
+		  animation: spin 0.9s linear infinite;
+		}
+
+		@keyframes spin {
+		  to { transform: rotate(360deg); }
+		}
 
     </style>
 
@@ -141,8 +169,11 @@
         <svg id="arrow-down" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
+		<div id="loader" hidden>
+		  <div class="spinner" aria-label="Loading"></div>
+		</div>
     </div>
-
+	
     <script src="script.js"></script>
 </body>
 </html>
