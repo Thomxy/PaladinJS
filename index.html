@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,6 +95,23 @@
 		  line-height: 1.3;            /* comfortable for up to two lines */
 		  text-align: center;          /* centered text */
 		}
+		
+		/* Make header parts highlight nicely */
+		#header h1 span {
+		  display: inline-block;
+		  border-radius: 4px;
+		  padding: 0 2px;
+		}
+
+		/* One-shot yellow glow that fades out */
+		@keyframes flashFade {
+		  0%   { background: #fff3b0; }
+		  100% { background: transparent; }
+		}
+
+		.flash {
+		  animation: flashFade 900ms ease-out;
+		}
 
     </style>
 
@@ -102,8 +120,10 @@
 
 	<div id="header">
 	  <h1>
-		<span id="header-line1"></span><br>
-		<span id="header-line2"></span>
+		<span id="header-weekday"></span>, 
+		<span id="header-date"></span>
+		<span id="header-time"></span><br>
+		<span id="header-alt"></span>
 	  </h1>
 	</div>
 
