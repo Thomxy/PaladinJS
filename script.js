@@ -9,6 +9,7 @@ const image = document.getElementById('forecast-image');
 const container = document.querySelector('.image-container');
 const DISPLAY_TZ = 'Europe/Ljubljana'; // CET/CEST
 const MAX_RUNS = 6;
+const headerEl = document.getElementById('header');
 
 // ===== STATE =====
 let offset = MIN_OFFSET;
@@ -24,6 +25,7 @@ let loaderTimer = null;
 let currentLang = localStorage.getItem('lang') || 'en';
 let runs = []; // each item: { dateStr: "YYYYMMDD", timeStr: "0000"|"1200" }
 let currentRunIndex = 0; // 0 = newest, increasing = older
+let anchorValidUtcMs = null;
 
 const I18N = {
   en: {
@@ -32,6 +34,7 @@ const I18N = {
     helpTitle: 'How to use',
     helpLi1: 'One finger: swipe left/right to change time; up/down to change altitude.',
     helpLi2: 'Two fingers: pinch to zoom; drag to pan.',
+	helpLi3: 'The header turns light gray when viewing a forecast from the past.',
     helpEmailPrefix: 'Questions or suggestions? Email',
     ariaHelp: 'Help',
     ariaCloseHelp: 'Close help',
@@ -43,6 +46,7 @@ const I18N = {
     helpTitle: 'Kako uporabljati',
     helpLi1: 'En prst: poteg levo/desno za spremembo časa; gor/dol za spremembo višine.',
     helpLi2: 'Dva prsta: ščip za povečavo; povlecite za premik.',
+	helpLi3: 'Ozadje glave je svetlo sivo, ko gledate napoved iz preteklosti.',
     helpEmailPrefix: 'Vprašanja ali predlogi? Pišite na',
     ariaHelp: 'Pomoč',
     ariaCloseHelp: 'Zapri pomoč',
@@ -311,6 +315,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 		image.addEventListener('load', () => { clampAndApplyTransform(lastScale); });
 		window.addEventListener('resize', () => { clampAndApplyTransform(lastScale); });
+		
+		anchorValidUtcMs = computeValidUtcMs(forecastDate, forecastTime, offset);
 
 		updateImage();
 
@@ -418,6 +424,12 @@ function updateHeader() {
 
   const baseUtcMs = Date.UTC(y, m - 1, d, hh, mm);
   const validUtcDate = new Date(baseUtcMs + offset * 3600 * 1000);
+  
+  if (anchorValidUtcMs != null) {
+	const curMs = validUtcDate.getTime();
+	if (curMs < anchorValidUtcMs) headerEl.classList.add('header--past');
+	else headerEl.classList.remove('header--past');
+  }
 
   const fmt = new Intl.DateTimeFormat('en-GB', {
     timeZone: DISPLAY_TZ,
@@ -541,6 +553,7 @@ function updateHelpText() {
   const title = document.getElementById('help-title');
   const li1 = document.getElementById('help-li1');
   const li2 = document.getElementById('help-li2');
+  const li3 = document.getElementById('help-li3');
   const emailPrefix = document.getElementById('help-email-prefix');
   const helpBtn = document.getElementById('help-btn');
   const helpClose = document.getElementById('help-close');
@@ -548,6 +561,7 @@ function updateHelpText() {
   if (title) title.textContent = t.helpTitle;
   if (li1) li1.textContent = t.helpLi1;
   if (li2) li2.textContent = t.helpLi2;
+  if (li3) li3.textContent = t.helpLi3;
   if (emailPrefix) emailPrefix.textContent = t.helpEmailPrefix;
   if (helpBtn) helpBtn.setAttribute('aria-label', t.ariaHelp);
   if (helpClose) helpClose.setAttribute('aria-label', t.ariaCloseHelp);
@@ -596,4 +610,13 @@ function computeInitialOffset() {
   if (stepped > MAX_OFFSET) stepped = MAX_OFFSET;
 
   return stepped;
+}
+
+function computeValidUtcMs(dateStr, timeStr, offHours) {
+  const y = parseInt(dateStr.slice(0, 4), 10);
+  const m = parseInt(dateStr.slice(4, 6), 10);
+  const d = parseInt(dateStr.slice(6, 8), 10);
+  const hh = parseInt(timeStr.slice(0, 2), 10);
+  const mm = parseInt(timeStr.slice(2, 4), 10);
+  return Date.UTC(y, m - 1, d, hh, mm) + offHours * 3600 * 1000;
 }
