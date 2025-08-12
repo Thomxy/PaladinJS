@@ -67,26 +67,19 @@ function updateImage() {
   const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
   const nextSrc = `${BASE_URL}/${fileName}`;
 
-  // Update header immediately
   updateHeader();
 
   // Show loader only if the load isn't instant
   showLoaderSoon(50);
 
-  const imgEl = document.getElementById("forecast-image");
-
-  // Clean up previous listeners (if any) and attach once-per-update listeners
   const onDone = () => {
     hideLoader();
-    imgEl.removeEventListener('load', onDone);
-    imgEl.removeEventListener('error', onDone);
   };
 
-  imgEl.addEventListener('load', onDone, { once: true });
-  imgEl.addEventListener('error', onDone, { once: true });
+  image.addEventListener('load', onDone, { once: true });
+  image.addEventListener('error', onDone, { once: true });
 
-  // Trigger the load (no preloading, no crossfade)
-  imgEl.src = nextSrc;
+  image.src = nextSrc;
 }
 
 // ===== NAVIGATION =====
@@ -177,12 +170,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('arrow-up').addEventListener('click', () => changeAltitude(1));
         document.getElementById('arrow-down').addEventListener('click', () => changeAltitude(-1));
 
-        image.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                initialDistance = getDistance(e.touches);
-                lastMidpoint = getMidpoint(e.touches);
-            }
-        }, { passive: false });
+		image.addEventListener('touchstart', (e) => {
+		  if (e.touches.length === 2) {
+			initialDistance = getDistance(e.touches);
+			lastMidpoint = getMidpoint(e.touches);
+		  }
+		}, { passive: true });
 
 		image.addEventListener('touchmove', (e) => {
 		  if (e.touches.length === 2) {
@@ -229,7 +222,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function getDistance(touches) {
     const [a, b] = touches;
     return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
-};
+}
 
 function getMidpoint(touches) {
     const [a, b] = touches;
@@ -237,7 +230,7 @@ function getMidpoint(touches) {
         x: (a.clientX + b.clientX) / 2,
         y: (a.clientY + b.clientY) / 2
     };
-};
+}
 
 function updateHeader() {
   if (!forecastDate || !forecastTime) return;
@@ -306,7 +299,7 @@ function formatAltitude(code) {
   if (code === 'tcc-rr') return 'cloud coverage'; // special label
   const match = /^vf(\d+m)$/.exec(code);
   return match ? match[1] : code; // e.g., "vf500m" -> "500m"
-};
+}
 
 let prevHeader = {
   weekday: null,
@@ -337,7 +330,6 @@ function hideLoader() {
 
 // Compute the base rendered image size (object-fit: contain) inside the container
 function getBaseRenderedSize() {
-  const container = document.querySelector('.image-container');
   const cw = container.clientWidth;
   const ch = container.clientHeight;
   const iw = image.naturalWidth || cw;
