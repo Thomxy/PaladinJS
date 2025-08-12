@@ -15,22 +15,23 @@
             overflow: hidden;
         }
 
-        .image-container {
-            height: calc(100dvh - 60px); /* prefer dynamic viewport height */
-            width: 100vw;
-            margin-top: 60px; /* to keep content below header */
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
+		.image-container {
+		  height: calc(100dvh - 60px); /* dynamic viewport height */
+		  width: 100vw;
+		  margin-top: 60px;            /* keep content below header */
+		  position: relative;
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  overflow: hidden;
+		}
 
-        @supports not (height: 100dvh) {
-            .image-container {
-                height: calc(100vh - 60px); /* fallback */
-            }
-        }
+		/* Fallback if 100dvh isn't supported */
+		@supports not (height: 100dvh) {
+		  .image-container {
+			height: calc(100vh - 60px);
+		  }
+		}
 
         img {
             width: 100%;
@@ -70,23 +71,41 @@
             }
         }
 
-        #header {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 60px; /* adjust to your header's height */
-          background: white; /* or whatever you like */
-          z-index: 1000;
-        }
+		#header {
+		  position: fixed;
+		  top: 0;
+		  left: 0;
+		  width: 100%;
+		  height: 60px;                /* unchanged height */
+		  background: #eaf6ff;         /* pale blue */
+		  z-index: 1000;
+
+		  display: flex;               /* center the text */
+		  align-items: center;         /* vertical centering */
+		  justify-content: center;     /* horizontal centering */
+		  padding: 4px 12px;           /* small padding while fitting two lines */
+		  box-sizing: border-box;
+		}
+
+		#header h1 {
+		  margin: 0;
+		  font-weight: 600;
+		  font-size: 14px;             /* smaller font */
+		  line-height: 1.3;            /* comfortable for up to two lines */
+		  text-align: center;          /* centered text */
+		}
+
     </style>
 
 </head>
 <body>
 
-    <div id="header">
-        <h1>My Header Text</h1>
-    </div>
+	<div id="header">
+	  <h1>
+		<span id="header-line1"></span><br>
+		<span id="header-line2"></span>
+	  </h1>
+	</div>
 
     <div class="image-container">
         <img id="forecast-image" alt="Forecast">
