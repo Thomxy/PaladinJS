@@ -111,50 +111,6 @@
 		.flash {
 		  animation: flashFade 900ms ease-out;
 		}
-		
-		#forecast-image {
-			transition: opacity 200ms ease;
-		}
-		
-		.crossfade-img {
-		  position: absolute;
-		  inset: 0;
-		  width: 100%;
-		  height: 100%;
-		  object-fit: contain;
-		  pointer-events: none;           /* don't block gestures */
-		  opacity: 0;                     /* start invisible */
-		  transition: opacity 250ms ease; /* fade duration */
-		  will-change: opacity, transform;
-		}
-		
-		/* Loader overlay centered in the image container */
-		#loader {
-		  position: absolute;
-		  inset: 0;
-		  display: grid;
-		  place-items: center;
-		  pointer-events: none; /* don't block gestures */
-		  z-index: 20;          /* above arrows (which are z-index:10) */
-		}
-
-		#loader[hidden] {
-		  display: none;
-		}
-
-		/* Simple spinner */
-		.spinner {
-		  width: 48px;
-		  height: 48px;
-		  border: 4px solid rgba(0,0,0,0.15);
-		  border-top-color: rgba(0,0,0,0.55);
-		  border-radius: 50%;
-		  animation: spin 0.9s linear infinite;
-		}
-
-		@keyframes spin {
-		  to { transform: rotate(360deg); }
-		}
 
     </style>
 
@@ -185,10 +141,6 @@
         <svg id="arrow-down" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-		
-		<div id="loader" hidden>
-		  <div class="spinner" aria-label="Loading"></div>
-		</div>
     </div>
 
     <script src="script.js"></script>
