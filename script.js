@@ -60,12 +60,55 @@ async function findLatestForecast() {
     throw new Error("No valid forecast base found.");
 }
 
-function updateImage() {
-    const offsetStr = pad(offset, 3);
-    const altitude = ALTITUDES[altitudeIndex];
-    const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
-    image.src = `${BASE_URL}/${fileName}`;
-	updateHeader();
+async function updateImage() {
+  const offsetStr = pad(offset, 3);
+  const altitude = ALTITUDES[altitudeIndex];
+  const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
+  const nextSrc = `${BASE_URL}/${fileName}`;
+
+  // Update header immediately
+  updateHeader();
+
+  // Show loader while the next image is loading
+  showLoader();
+
+  const imgEl = document.getElementById("forecast-image");
+  const parent = imgEl.parentElement;
+
+  // Remove previous overlay if any
+  const existing = parent.querySelector('.crossfade-img');
+  if (existing) existing.remove();
+
+  // Create overlay that will fade in over the current image
+  const overlay = new Image();
+  overlay.className = 'crossfade-img';
+  overlay.alt = '';
+  overlay.decoding = 'async';
+  overlay.style.transform = imgEl.style.transform || '';
+  parent.appendChild(overlay);
+
+  // Start loading after listeners are set
+  overlay.onload = async () => {
+    // Ensure styles are applied before transitioning
+    await nextFrame(); // if you don't have this helper yet, add it below
+
+    overlay.style.opacity = '1';
+
+    overlay.addEventListener('transitionend', () => {
+      imgEl.src = nextSrc;   // swap base image once overlay is visible
+      overlay.remove();      // cleanup
+      hideLoader();          // done loading
+    }, { once: true });
+  };
+
+  overlay.onerror = () => {
+    // Fallback: just switch without crossfade
+    imgEl.src = nextSrc;
+    overlay.remove();
+    hideLoader();
+  };
+
+  overlay.src = nextSrc;
 }
 
 // ===== NAVIGATION =====
@@ -101,6 +144,7 @@ container.addEventListener('touchstart', e => {
         touchStartY = e.touches[0].clientY;
     }
 }, { passive: true });
+
 
 container.addEventListener('touchmove', e => {
     if (e.touches.length === 1) {
@@ -177,7 +221,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 // Apply transform
                 image.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(${newScale})`;
-
+				
+				const overlayEl = image.parentElement.querySelector('.crossfade-img');
+				if (overlayEl) overlayEl.style.transform = image.style.transform;
+				
                 // Update last states for next event
                 lastScale = newScale;
                 initialDistance = currentDistance;
@@ -202,7 +249,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function getDistance(touches) {
     const [a, b] = touches;
     return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
-};
+}
 
 function getMidpoint(touches) {
     const [a, b] = touches;
@@ -210,7 +257,7 @@ function getMidpoint(touches) {
         x: (a.clientX + b.clientX) / 2,
         y: (a.clientY + b.clientY) / 2
     };
-};
+}
 
 function updateHeader() {
   if (!forecastDate || !forecastTime) return;
@@ -293,4 +340,33 @@ function flash(el) {
   el.classList.remove('flash'); // allow re-trigger
   void el.offsetWidth;          // force reflow
   el.classList.add('flash');
+}
+
+function preloadImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = src;
+  });
+}
+
+function onTransitionEndOnce(el) {
+  return new Promise((resolve) => {
+    el.addEventListener('transitionend', resolve, { once: true });
+  });
+}
+
+function nextFrame() {
+  return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+}
+
+function showLoader() {
+  const el = document.getElementById('loader');
+  if (el) el.hidden = false;
+}
+
+function hideLoader() {
+  const el = document.getElementById('loader');
+  if (el) el.hidden = true;
 }
