@@ -34,7 +34,8 @@ const I18N = {
     helpTitle: 'How to use',
     helpLi1: 'One finger: swipe left/right to change time; up/down to change altitude.',
     helpLi2: 'Two fingers: pinch to zoom; drag to pan.',
-	helpLi3: 'The header turns light gray when viewing a forecast from the past.',
+    helpLi3: 'The header turns light gray when viewing a forecast from the past.',
+    helpLi4: 'On the computer, use onscreen arrows or cursor keys.',
     helpEmailPrefix: 'Questions or suggestions? Email',
     ariaHelp: 'Help',
     ariaCloseHelp: 'Close help',
@@ -42,11 +43,12 @@ const I18N = {
   },
   si: {
     weekdays: ['Ned', 'Pon', 'Tor', 'Sre', 'Čet', 'Pet', 'Sob'],
-    tccLabel: 'oblaki',
+    tccLabel: 'oblačnost',
     helpTitle: 'Kako uporabljati',
     helpLi1: 'En prst: poteg levo/desno za spremembo časa; gor/dol za spremembo višine.',
     helpLi2: 'Dva prsta: ščip za povečavo; povlecite za premik.',
 	helpLi3: 'Ozadje glave je svetlo sivo, ko gledate napoved iz preteklosti.',
+    helpLi4: 'Na računalniku uporabite gumbe na ekranu ali kurzorske tipke.', 
     helpEmailPrefix: 'Vprašanja ali predlogi? Pišite na',
     ariaHelp: 'Pomoč',
     ariaCloseHelp: 'Zapri pomoč',
@@ -397,6 +399,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 	document.addEventListener('keydown', (e) => {
 	  if (e.key === 'Escape' && !helpOverlay.hidden) closeHelp();
 	});
+	
+	// Keyboard arrow key navigation
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          changeOffset(-OFFSET_STEP);
+          break;
+        case 'ArrowRight':
+          changeOffset(OFFSET_STEP);
+          break;
+        case 'ArrowUp':
+          changeAltitude(1);
+          break;
+        case 'ArrowDown':
+          changeAltitude(-1);
+          break;
+      }
+    });
 });
 
 // Helper function to get distance between two touches (put it anywhere in the file)
@@ -554,6 +574,7 @@ function updateHelpText() {
   const li1 = document.getElementById('help-li1');
   const li2 = document.getElementById('help-li2');
   const li3 = document.getElementById('help-li3');
+  const li4 = document.getElementById('help-li4');
   const emailPrefix = document.getElementById('help-email-prefix');
   const helpBtn = document.getElementById('help-btn');
   const helpClose = document.getElementById('help-close');
@@ -562,6 +583,7 @@ function updateHelpText() {
   if (li1) li1.textContent = t.helpLi1;
   if (li2) li2.textContent = t.helpLi2;
   if (li3) li3.textContent = t.helpLi3;
+  if (li4) li4.textContent = t.helpLi4;
   if (emailPrefix) emailPrefix.textContent = t.helpEmailPrefix;
   if (helpBtn) helpBtn.setAttribute('aria-label', t.ariaHelp);
   if (helpClose) helpClose.setAttribute('aria-label', t.ariaCloseHelp);
@@ -573,7 +595,7 @@ function setLang(lang) {
 
   // Update the small label in the language button
   const code = document.getElementById('lang-code');
-  if (code) code.textContent = currentLang.toUpperCase();
+  if (code) code.textContent = (currentLang === 'en' ? 'si' : 'en').toUpperCase();
 
   // Update ARIA label for the language button
   const langBtn = document.getElementById('lang-btn');
