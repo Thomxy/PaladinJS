@@ -7,6 +7,7 @@ const OFFSET_STEP = 3;
 const SWIPE_THRESHOLD = 40; // px
 const image = document.getElementById('forecast-image');
 const container = document.querySelector('.image-container');
+const DISPLAY_TZ = 'Europe/Ljubljana'; // CET/CEST
 
 // ===== STATE =====
 let offset = MIN_OFFSET;
@@ -63,7 +64,8 @@ function updateImage() {
     const offsetStr = pad(offset, 3);
     const altitude = ALTITUDES[altitudeIndex];
     const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
-    document.getElementById("forecast-image").src = `${BASE_URL}/${fileName}`;
+    image.src = `${BASE_URL}/${fileName}`;
+	updateHeader();
 }
 
 // ===== NAVIGATION =====
@@ -200,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function getDistance(touches) {
     const [a, b] = touches;
     return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
-}
+};
 
 function getMidpoint(touches) {
     const [a, b] = touches;
@@ -208,4 +210,50 @@ function getMidpoint(touches) {
         x: (a.clientX + b.clientX) / 2,
         y: (a.clientY + b.clientY) / 2
     };
+};
+
+function updateHeader() {
+  if (!forecastDate || !forecastTime) return;
+
+  const y = parseInt(forecastDate.slice(0, 4), 10);
+  const m = parseInt(forecastDate.slice(4, 6), 10);
+  const d = parseInt(forecastDate.slice(6, 8), 10);
+  const hh = parseInt(forecastTime.slice(0, 2), 10);
+  const mm = parseInt(forecastTime.slice(2, 4), 10);
+
+  // Interpret base as UTC, add offset hours in UTC
+  const baseUtcMs = Date.UTC(y, m - 1, d, hh, mm);
+  const validUtcDate = new Date(baseUtcMs + offset * 3600 * 1000);
+
+  // Format in local CET/CEST without showing the timezone abbreviation
+  const fmt = new Intl.DateTimeFormat('en-GB', {
+    timeZone: DISPLAY_TZ,      // e.g., 'Europe/Ljubljana'
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+
+  const parts = fmt.formatToParts(validUtcDate);
+  const map = {};
+  for (const p of parts) {
+    if (!(p.type in map)) map[p.type] = p.value;
+  }
+
+  const line1 = `${map.weekday}, ${map.day}/${map.month}/${map.year} ${map.hour}:${map.minute}`;
+  const line2 = formatAltitude(ALTITUDES[altitudeIndex]); // e.g., "500m" or "cloud coverage"
+
+  const el1 = document.getElementById('header-line1');
+  const el2 = document.getElementById('header-line2');
+  if (el1) el1.textContent = line1;
+  if (el2) el2.textContent = line2;
+};
+
+function formatAltitude(code) {
+  if (code === 'tcc-rr') return 'cloud coverage'; // special label
+  const match = /^vf(\d+m)$/.exec(code);
+  return match ? match[1] : code; // e.g., "vf500m" -> "500m"
 }
