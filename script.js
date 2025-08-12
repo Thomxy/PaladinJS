@@ -8,6 +8,7 @@ const SWIPE_THRESHOLD = 40; // px
 const image = document.getElementById('forecast-image');
 const container = document.querySelector('.image-container');
 const DISPLAY_TZ = 'Europe/Ljubljana'; // CET/CEST
+const MAX_RUNS = 6;
 
 // ===== STATE =====
 let offset = MIN_OFFSET;
@@ -21,6 +22,8 @@ let lastTranslateY = 0;
 let lastMidpoint = { x: 0, y: 0 };
 let loaderTimer = null;
 let currentLang = localStorage.getItem('lang') || 'en';
+let runs = []; // each item: { dateStr: "YYYYMMDD", timeStr: "0000"|"1200" }
+let currentRunIndex = 0; // 0 = newest, increasing = older
 
 const I18N = {
   en: {
@@ -87,6 +90,64 @@ async function findLatestForecast() {
     throw new Error("No valid forecast base found.");
 }
 
+// Build a list of up to MAX_RUNS recent runs by stepping back 12h
+async function buildRunList() {
+  runs = [];
+
+  // First, find the latest available run (reuse your existing probe logic)
+  const today = new Date();
+  const candidates = [
+    { d: today, t: "1200" },
+    { d: today, t: "0000" },
+    { d: new Date(today.getTime() - 86400000), t: "1200" },
+    { d: new Date(today.getTime() - 86400000), t: "0000" },
+  ];
+
+  let latest = null;
+  for (const c of candidates) {
+    const dateStr = getDateString(c.d);
+    const url = `${BASE_URL}/as_${dateStr}-${c.t}_tcc-rr_si-neighbours_003.png`;
+    if (await fileExists(url)) {
+      latest = { dateStr, timeStr: c.t };
+      break;
+    }
+  }
+  if (!latest) throw new Error("No valid forecast base found.");
+
+  runs.push(latest);
+
+  // Step back 12h at a time to collect older runs
+  let y = parseInt(latest.dateStr.slice(0, 4), 10);
+  let m = parseInt(latest.dateStr.slice(4, 6), 10) - 1;
+  let d = parseInt(latest.dateStr.slice(6, 8), 10);
+  let hh = latest.timeStr === "1200" ? 12 : 0;
+
+  while (runs.length < MAX_RUNS) {
+    const dt = new Date(Date.UTC(y, m, d, hh));
+    dt.setUTCHours(dt.getUTCHours() - 12); // minus 12 hours
+
+    const dateStr = dt.getUTCFullYear().toString()
+      + pad(dt.getUTCMonth() + 1)
+      + pad(dt.getUTCDate());
+    const timeStr = dt.getUTCHours() === 12 ? "1200" : "0000";
+
+    // Verify the run exists (check an early step like 003)
+    const url = `${BASE_URL}/as_${dateStr}-${timeStr}_tcc-rr_si-neighbours_003.png`;
+    const ok = await fileExists(url);
+    if (!ok) break;
+
+    runs.push({ dateStr, timeStr });
+
+    // Prepare for next loop
+    y = dt.getUTCFullYear(); m = dt.getUTCMonth(); d = dt.getUTCDate(); hh = dt.getUTCHours();
+  }
+
+  // Initialize current run/date/time to newest
+  currentRunIndex = 0;
+  forecastDate = runs[0].dateStr;
+  forecastTime = runs[0].timeStr;
+}
+
 function updateImage() {
   const offsetStr = pad(offset, 3);
   const altitude = ALTITUDES[altitudeIndex];
@@ -110,11 +171,65 @@ function updateImage() {
 
 // ===== NAVIGATION =====
 function changeOffset(amount) {
+  // Fallback for single-run mode (if runs list isn’t present)
+  if (!Array.isArray(runs) || runs.length === 0) {
     const newOffset = offset + amount;
     if (newOffset >= MIN_OFFSET && newOffset <= MAX_OFFSET) {
-        offset = newOffset;
-        updateImage();
+      offset = newOffset;
+      updateImage();
     }
+    return;
+  }
+
+  const step = amount > 0 ? OFFSET_STEP : -OFFSET_STEP;
+  let remaining = Math.abs(amount);
+
+  while (remaining > 0) {
+    if (step > 0) {
+      // Moving forward in time
+      if (currentRunIndex > 0) {
+        // In an older run: climb up to 012, then hop to newer run at 003
+        if (offset < 12) {
+          offset += OFFSET_STEP; // 003 -> 006 -> 009 -> 012
+        } else {
+          // offset === 12: hop to the next newer run at 003
+          currentRunIndex -= 1;
+          offset = MIN_OFFSET; // 003
+        }
+      } else {
+        // Newest run: advance normally up to MAX_OFFSET
+        if (offset + OFFSET_STEP <= MAX_OFFSET) {
+          offset += OFFSET_STEP;
+        } else {
+          // Already at the newest available step; stop
+          break;
+        }
+      }
+    } else {
+      // Moving backward in time
+      if (offset > MIN_OFFSET) {
+        offset -= OFFSET_STEP; // 072 -> ... -> 006 -> 003
+      } else {
+        // offset === 3: hop to the previous (older) run at 012
+        if (currentRunIndex < runs.length - 1) {
+          currentRunIndex += 1;
+          offset = 12; // show only a few steps from older runs
+        } else {
+          // Already at the oldest we keep; stop
+          break;
+        }
+      }
+    }
+
+    remaining -= OFFSET_STEP;
+  }
+
+  // Sync base date/time to the selected run and update
+  if (runs[currentRunIndex]) {
+    forecastDate = runs[currentRunIndex].dateStr;
+    forecastTime = runs[currentRunIndex].timeStr;
+  }
+  updateImage();
 }
 
 function changeAltitude(direction) {
@@ -188,18 +303,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 			setLang(currentLang === 'en' ? 'si' : 'en');
 		});
 	 }
-    try {
-        await findLatestForecast();
-		
-		image.addEventListener('load', () => {
-		  clampAndApplyTransform(lastScale);
-		});
-		window.addEventListener('resize', () => {
-		  clampAndApplyTransform(lastScale);
-		});
-		
+	try {
+		await buildRunList();
+
+		// Optional: start at the time step just before "now" within the newest run.
 		offset = computeInitialOffset();
+
+		image.addEventListener('load', () => { clampAndApplyTransform(lastScale); });
+		window.addEventListener('resize', () => { clampAndApplyTransform(lastScale); });
+
 		updateImage();
+
 
         // Move inline SVG onclicks to addEventListener
         document.getElementById('arrow-left').addEventListener('click', () => changeOffset(-OFFSET_STEP));
