@@ -6,6 +6,7 @@ const MAX_OFFSET = 72;
 const OFFSET_STEP = 3;
 const SWIPE_THRESHOLD = 40; // px
 const image = document.getElementById('forecast-image');
+const container = document.querySelector('.image-container');
 
 // ===== STATE =====
 let offset = MIN_OFFSET;
@@ -17,10 +18,6 @@ let initialDistance = 0;
 let lastTranslateX = 0;
 let lastTranslateY = 0;
 let lastMidpoint = { x: 0, y: 0 };
-let startPanX = 0;
-let startPanY = 0;
-let isTwoFingerPanning = false;
-let lastTouchDistance = 0;
 
 // ===== HELPERS =====
 function pad(n, length = 2) {
@@ -91,7 +88,8 @@ let touchStartX = 0, touchStartY = 0;
 let touchMoved = false;
 let gestureBeganMultiTouch = false;
 
-document.addEventListener('touchstart', e => {
+// Scoped to the image container instead of document
+container.addEventListener('touchstart', e => {
     if (e.touches.length > 1) {
         gestureBeganMultiTouch = true;
     } else {
@@ -102,7 +100,7 @@ document.addEventListener('touchstart', e => {
     }
 }, { passive: true });
 
-document.addEventListener('touchmove', e => {
+container.addEventListener('touchmove', e => {
     if (e.touches.length === 1) {
         e.preventDefault();
         touchMoved = true;
@@ -111,7 +109,7 @@ document.addEventListener('touchmove', e => {
     }
 }, { passive: false });
 
-document.addEventListener('touchend', e => {
+container.addEventListener('touchend', e => {
     if (gestureBeganMultiTouch) {
         if (!e.touches || e.touches.length === 0) gestureBeganMultiTouch = false;
         return;
@@ -131,24 +129,22 @@ document.addEventListener('touchend', e => {
     }
 }, { passive: true });
 
-document.addEventListener('touchcancel', () => {
+container.addEventListener('touchcancel', () => {
     gestureBeganMultiTouch = false;
     touchMoved = false;
 });
-
-function getMidpoint(touches) {
-  const [a, b] = touches;
-  return {
-    x: (a.clientX + b.clientX) / 2,
-    y: (a.clientY + b.clientY) / 2
-  };
-}
 
 // ===== INIT =====
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await findLatestForecast();
         updateImage();
+
+        // Move inline SVG onclicks to addEventListener
+        document.getElementById('arrow-left').addEventListener('click', () => changeOffset(-OFFSET_STEP));
+        document.getElementById('arrow-right').addEventListener('click', () => changeOffset(OFFSET_STEP));
+        document.getElementById('arrow-up').addEventListener('click', () => changeAltitude(1));
+        document.getElementById('arrow-down').addEventListener('click', () => changeAltitude(-1));
 
         image.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
