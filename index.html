@@ -3,76 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <title>PaladinJS</title>
-    
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        overflow: hidden;
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    .image-container {
-        height: calc(100vh - 60px); /* subtract header height */
-        width: 100vw;
-        margin-top: 60px; /* to keep content below header */
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-    }
-    
-    img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-        
-        touch-action: pan-x pan-y pinch-zoom;
-        user-select: none;
-        -webkit-user-drag: none;
-    }
-
-    .arrow {
-        position: absolute;
-        width: 40px;
-        height: 40px;
-        fill: black;
-        background-color: rgba(200, 100, 100, 0.6);
-        border-radius: 50%;
-        opacity: 0.8;
-        cursor: pointer;
-        z-index: 10;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-    .arrow:hover { opacity: 1; }
-    #arrow-left  { right: 60px; transform: translateY(-50%) rotate(180deg); }
-    #arrow-right { right: 10px; }
-    #arrow-up    { right: 35px; transform: translateY(-100%) rotate(270deg); }
-    #arrow-down  { right: 35px; transform: rotate(90deg); }
-    
-    /* Hide buttons on small screens (phones) */
-    @media (pointer: coarse) {
-        .arrow {
-            display: none;
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
         }
-    }
-    
-    #header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px; /* adjust to your header's height */
-      background: white; /* or whatever you like */
-      z-index: 1000;
-    }
-</style>
+
+        .image-container {
+            height: calc(100dvh - 60px); /* prefer dynamic viewport height */
+            width: 100vw;
+            margin-top: 60px; /* to keep content below header */
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        @supports not (height: 100dvh) {
+            .image-container {
+                height: calc(100vh - 60px); /* fallback */
+            }
+        }
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+
+            touch-action: none; /* we implement our own gestures */
+            user-select: none;
+            -webkit-user-drag: none;
+            will-change: transform; /* smoother pinch/pan */
+        }
+
+        .arrow {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            fill: black;
+            background-color: rgba(200, 100, 100, 0.6);
+            border-radius: 50%;
+            opacity: 0.8;
+            cursor: pointer;
+            z-index: 10;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .arrow:hover { opacity: 1; }
+        #arrow-left  { right: 60px; transform: translateY(-50%) rotate(180deg); }
+        #arrow-right { right: 10px; }
+        #arrow-up    { right: 35px; transform: translateY(-100%) rotate(270deg); }
+        #arrow-down  { right: 35px; transform: rotate(90deg); }
+
+        /* Hide buttons on small screens (phones) */
+        @media (pointer: coarse) {
+            .arrow {
+                display: none;
+            }
+        }
+
+        #header {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 60px; /* adjust to your header's height */
+          background: white; /* or whatever you like */
+          z-index: 1000;
+        }
+    </style>
 
 </head>
 <body>
@@ -84,16 +91,16 @@
     <div class="image-container">
         <img id="forecast-image" alt="Forecast">
 
-        <svg id="arrow-left" class="arrow" onclick="changeOffset(-3)" viewBox="0 0 24 24">
+        <svg id="arrow-left" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-        <svg id="arrow-right" class="arrow" onclick="changeOffset(3)" viewBox="0 0 24 24">
+        <svg id="arrow-right" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-        <svg id="arrow-up" class="arrow" onclick="changeAltitude(1)" viewBox="0 0 24 24">
+        <svg id="arrow-up" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
-        <svg id="arrow-down" class="arrow" onclick="changeAltitude(-1)" viewBox="0 0 24 24">
+        <svg id="arrow-down" class="arrow" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
         </svg>
     </div>
