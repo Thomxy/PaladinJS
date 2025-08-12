@@ -1,6 +1,6 @@
 // ===== CONFIGURATION =====
 const BASE_URL = "https://meteo.arso.gov.si/uploads/probase/www/model/aladin/field";
-const ALTITUDES = ["tcc-rr", "vf500m", "vf1000m", "vf1500m", "vf2000m", "vf2500m", "vf3000m", "vf4000m", "vf5500m"];
+const ALTITUDES = ["tcc-rr", "vf500m", "vf925hPa", "vf1000m", "vf1500m", "vf2000m", "vf2500m", "vf3000m", "vf4000m", "vf5500m"];
 const MIN_OFFSET = 3;
 const MAX_OFFSET = 72;
 const OFFSET_STEP = 3;
@@ -353,6 +353,7 @@ function updateHeader() {
 
 function formatAltitude(code) {
   if (code === 'tcc-rr') return I18N[currentLang].tccLabel;
+  if (code === 'vf925hPa') return '750m';
   const match = /^vf(\d+m)$/.exec(code);
   return match ? match[1] : code;
 }
