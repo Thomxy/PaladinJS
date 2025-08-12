@@ -227,7 +227,7 @@ function updateHeader() {
 
   // Format in local CET/CEST without showing the timezone abbreviation
   const fmt = new Intl.DateTimeFormat('en-GB', {
-    timeZone: DISPLAY_TZ,      // e.g., 'Europe/Ljubljana'
+    timeZone: DISPLAY_TZ,
     weekday: 'short',
     day: '2-digit',
     month: '2-digit',
@@ -243,17 +243,54 @@ function updateHeader() {
     if (!(p.type in map)) map[p.type] = p.value;
   }
 
-  const line1 = `${map.weekday}, ${map.day}/${map.month}/${map.year} ${map.hour}:${map.minute}`;
-  const line2 = formatAltitude(ALTITUDES[altitudeIndex]); // e.g., "500m" or "cloud coverage"
+  const curr = {
+    weekday: map.weekday,                               // e.g., "Tue"
+    date: `${map.day}/${map.month}/${map.year}`,        // e.g., "05/01/2022"
+    time: `${map.hour}:${map.minute}`,                  // e.g., "14:00"
+    alt: formatAltitude(ALTITUDES[altitudeIndex])       // e.g., "500m" or "cloud coverage"
+  };
 
-  const el1 = document.getElementById('header-line1');
-  const el2 = document.getElementById('header-line2');
-  if (el1) el1.textContent = line1;
-  if (el2) el2.textContent = line2;
-};
+  const elWeek = document.getElementById('header-weekday');
+  const elDate = document.getElementById('header-date');
+  const elTime = document.getElementById('header-time');
+  const elAlt  = document.getElementById('header-alt');
+
+  if (elWeek && elWeek.textContent !== curr.weekday) {
+    elWeek.textContent = curr.weekday;
+    if (prevHeader.weekday !== null) flash(elWeek);
+  }
+  if (elDate && elDate.textContent !== curr.date) {
+    elDate.textContent = curr.date;
+    if (prevHeader.date !== null) flash(elDate);
+  }
+  if (elTime && elTime.textContent !== curr.time) {
+    elTime.textContent = curr.time;
+    if (prevHeader.time !== null) flash(elTime);
+  }
+  if (elAlt && elAlt.textContent !== curr.alt) {
+    elAlt.textContent = curr.alt;
+    if (prevHeader.alt !== null) flash(elAlt);
+  }
+
+  prevHeader = curr;
+}
 
 function formatAltitude(code) {
   if (code === 'tcc-rr') return 'cloud coverage'; // special label
   const match = /^vf(\d+m)$/.exec(code);
   return match ? match[1] : code; // e.g., "vf500m" -> "500m"
+};
+
+let prevHeader = {
+  weekday: null,
+  date: null,
+  time: null,
+  alt: null
+};
+
+function flash(el) {
+  if (!el) return;
+  el.classList.remove('flash'); // allow re-trigger
+  void el.offsetWidth;          // force reflow
+  el.classList.add('flash');
 }
