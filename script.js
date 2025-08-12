@@ -198,7 +198,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 		  clampAndApplyTransform(lastScale);
 		});
 		
-        updateImage();
+		offset = computeInitialOffset();
+		updateImage();
 
         // Move inline SVG onclicks to addEventListener
         document.getElementById('arrow-left').addEventListener('click', () => changeOffset(-OFFSET_STEP));
@@ -452,4 +453,32 @@ function setLang(lang) {
   // Refresh header and help texts
   updateHeader();
   updateHelpText();
+}
+
+function computeInitialOffset() {
+  if (!forecastDate || !forecastTime) return MIN_OFFSET;
+
+  const y = parseInt(forecastDate.slice(0, 4), 10);
+  const m = parseInt(forecastDate.slice(4, 6), 10);
+  const d = parseInt(forecastDate.slice(6, 8), 10);
+  const hh = parseInt(forecastTime.slice(0, 2), 10);
+  const mm = parseInt(forecastTime.slice(2, 4), 10);
+
+  // Base run time in UTC
+  const baseUtcMs = Date.UTC(y, m - 1, d, hh, mm);
+
+  // "Now" in UTC
+  const nowMs = Date.now();
+
+  // Hours between now and base run
+  const diffHours = Math.floor((nowMs - baseUtcMs) / 3600000);
+
+  // Round down to the nearest available step (3h) so it's "just before now"
+  let stepped = Math.floor(diffHours / OFFSET_STEP) * OFFSET_STEP;
+
+  // Clamp to available forecast range
+  if (stepped < MIN_OFFSET) stepped = MIN_OFFSET;
+  if (stepped > MAX_OFFSET) stepped = MAX_OFFSET;
+
+  return stepped;
 }
