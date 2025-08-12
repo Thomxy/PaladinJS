@@ -19,6 +19,7 @@ let initialDistance = 0;
 let lastTranslateX = 0;
 let lastTranslateY = 0;
 let lastMidpoint = { x: 0, y: 0 };
+let loaderTimer = null;
 
 // ===== HELPERS =====
 function pad(n, length = 2) {
@@ -61,11 +62,31 @@ async function findLatestForecast() {
 }
 
 function updateImage() {
-    const offsetStr = pad(offset, 3);
-    const altitude = ALTITUDES[altitudeIndex];
-    const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
-    image.src = `${BASE_URL}/${fileName}`;
-	updateHeader();
+  const offsetStr = pad(offset, 3);
+  const altitude = ALTITUDES[altitudeIndex];
+  const fileName = `as_${forecastDate}-${forecastTime}_${altitude}_si-neighbours_${offsetStr}.png`;
+  const nextSrc = `${BASE_URL}/${fileName}`;
+
+  // Update header immediately
+  updateHeader();
+
+  // Show loader only if the load isn't instant
+  showLoaderSoon(50);
+
+  const imgEl = document.getElementById("forecast-image");
+
+  // Clean up previous listeners (if any) and attach once-per-update listeners
+  const onDone = () => {
+    hideLoader();
+    imgEl.removeEventListener('load', onDone);
+    imgEl.removeEventListener('error', onDone);
+  };
+
+  imgEl.addEventListener('load', onDone, { once: true });
+  imgEl.addEventListener('error', onDone, { once: true });
+
+  // Trigger the load (no preloading, no crossfade)
+  imgEl.src = nextSrc;
 }
 
 // ===== NAVIGATION =====
@@ -293,4 +314,17 @@ function flash(el) {
   el.classList.remove('flash'); // allow re-trigger
   void el.offsetWidth;          // force reflow
   el.classList.add('flash');
+}
+
+function showLoaderSoon(delay = 120) {
+  const el = document.getElementById('loader');
+  clearTimeout(loaderTimer);
+  loaderTimer = setTimeout(() => { if (el) el.hidden = false; }, delay);
+}
+
+function hideLoader() {
+  const el = document.getElementById('loader');
+  clearTimeout(loaderTimer);
+  loaderTimer = null;
+  if (el) el.hidden = true;
 }
