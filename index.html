@@ -247,7 +247,15 @@
 		  font: 600 11px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 		  color: #333;
 		}
+		/* Smooth background change */
+		#header {
+		  transition: background-color 200ms ease;
+		}
 
+		/* Past forecasts: light gray background for subtle emphasis */
+		#header.header--past {
+		  background: #eeeeee;
+		}
     </style>
 
 </head>
@@ -307,6 +315,7 @@
 		<ul>
 		  <li id="help-li1">One finger: swipe left/right to change time; up/down to change altitude.</li>
 		  <li id="help-li2">Two fingers: pinch to zoom; drag to pan.</li>
+		  <li id="help-li3">The header turns light gray when viewing a forecast from the past.</li>
 		</ul>
 		<p id="help-email-line">
 		  <span id="help-email-prefix">Questions or suggestions? </span>
