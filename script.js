@@ -161,6 +161,14 @@ container.addEventListener('touchcancel', () => {
 document.addEventListener("DOMContentLoaded", async () => {
     try {
         await findLatestForecast();
+		
+		image.addEventListener('load', () => {
+		  clampAndApplyTransform(lastScale);
+		});
+		window.addEventListener('resize', () => {
+		  clampAndApplyTransform(lastScale);
+		});
+		
         updateImage();
 
         // Move inline SVG onclicks to addEventListener
@@ -176,35 +184,33 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }, { passive: false });
 
-        image.addEventListener('touchmove', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault();
+		image.addEventListener('touchmove', (e) => {
+		  if (e.touches.length === 2) {
+			e.preventDefault();
 
-                const currentDistance = getDistance(e.touches);
-                const currentMidpoint = getMidpoint(e.touches);
+			const currentDistance = getDistance(e.touches);
+			const currentMidpoint = getMidpoint(e.touches);
 
-                // Calculate scale factor change
-                let scaleChange = currentDistance / initialDistance;
-                let newScale = lastScale * scaleChange;
-                newScale = Math.min(Math.max(newScale, 1), 5);
+			// Calculate scale factor change (guard initialDistance)
+			const scaleChange = currentDistance / (initialDistance || currentDistance);
+			let newScale = lastScale * scaleChange;
 
-                // Calculate translation change (pan delta)
-                let deltaX = currentMidpoint.x - lastMidpoint.x;
-                let deltaY = currentMidpoint.y - lastMidpoint.y;
+			// Pan deltas in screen px
+			const deltaX = currentMidpoint.x - lastMidpoint.x;
+			const deltaY = currentMidpoint.y - lastMidpoint.y;
 
-                // Update translate position factoring scale
-                lastTranslateX += deltaX;
-                lastTranslateY += deltaY;
+			// Update accumulated translation
+			lastTranslateX += deltaX;
+			lastTranslateY += deltaY;
 
-                // Apply transform
-                image.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(${newScale})`;
+			// Clamp translation based on new scale and apply
+			clampAndApplyTransform(newScale);
 
-                // Update last states for next event
-                lastScale = newScale;
-                initialDistance = currentDistance;
-                lastMidpoint = currentMidpoint;
-            }
-        }, { passive: false });
+			// Update last states for next event
+			initialDistance = currentDistance;
+			lastMidpoint = currentMidpoint;
+		  }
+		}, { passive: false });
 
         image.addEventListener('touchend', (e) => {
             if (e.touches.length < 2) {
@@ -327,4 +333,42 @@ function hideLoader() {
   clearTimeout(loaderTimer);
   loaderTimer = null;
   if (el) el.hidden = true;
+}
+
+// Compute the base rendered image size (object-fit: contain) inside the container
+function getBaseRenderedSize() {
+  const container = document.querySelector('.image-container');
+  const cw = container.clientWidth;
+  const ch = container.clientHeight;
+  const iw = image.naturalWidth || cw;
+  const ih = image.naturalHeight || ch;
+
+  const containScale = Math.min(cw / iw, ch / ih) || 1;
+  const baseWidth = iw * containScale;
+  const baseHeight = ih * containScale;
+
+  return { baseWidth, baseHeight, containerWidth: cw, containerHeight: ch };
+}
+
+// Clamp translate so you can't pan beyond the image edges, then apply transform
+function clampAndApplyTransform(nextScale) {
+  // Clamp scale to your desired range
+  let s = Math.max(1, Math.min(nextScale, 5));
+
+  const { baseWidth, baseHeight, containerWidth, containerHeight } = getBaseRenderedSize();
+  const effW = baseWidth * s;
+  const effH = baseHeight * s;
+
+  // Compute max allowed pan from center; if image doesn't fill axis, lock that axis (no pan)
+  const maxX = effW > containerWidth ? (effW - containerWidth) / 2 : 0;
+  const maxY = effH > containerHeight ? (effH - containerHeight) / 2 : 0;
+
+  if (maxX === 0) lastTranslateX = 0;
+  else lastTranslateX = Math.max(-maxX, Math.min(lastTranslateX, maxX));
+
+  if (maxY === 0) lastTranslateY = 0;
+  else lastTranslateY = Math.max(-maxY, Math.min(lastTranslateY, maxY));
+
+  lastScale = s;
+  image.style.transform = `translate(${lastTranslateX}px, ${lastTranslateY}px) scale(${lastScale})`;
 }
