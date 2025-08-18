@@ -14,6 +14,8 @@ const OFFSET_STEP = 3;
 const SWIPE_THRESHOLD = 40; // px for swipe decision
 const DISPLAY_TZ = 'Europe/Ljubljana'; // CET/CEST for header
 const MAX_RUNS = 6;
+const BASE_IMAGE_WIDTH = 640;  // Reference width for hotspot positions
+const BASE_IMAGE_HEIGHT = 480; // Reference height for hotspot positions
 
 // Hotspot metadata (10m mode)
 const hotspotSuffixes = [
@@ -366,6 +368,7 @@ function createHotspots() {
   hotspotElements = hotspotPositions.map((pos, idx) => {
     const el = document.createElement('div');
     el.className = 'hotspot';
+		el.innerHTML = '<div class="pin"></div>';
     el.addEventListener('click', () => { enterTenmHotspotMode(idx); });
     container.appendChild(el);
     positionHotspot(el, pos);
@@ -376,19 +379,19 @@ function createHotspots() {
 /** Compute hotspot position in screen coords, including zoom/pan transforms. */
 function positionHotspot(el, pos) {
   const { baseWidth, baseHeight, containerWidth, containerHeight } = getBaseRenderedSize();
+  
+  // Normalize position to base reference size
+  const normalizedX = pos.x * (image.naturalWidth / BASE_IMAGE_WIDTH);
+  const normalizedY = pos.y * (image.naturalHeight / BASE_IMAGE_HEIGHT);
 
-  // Base position in container when scale = 1 and no pan
-  const imgLeft = (containerWidth - baseWidth) / 2;
-  const imgTop  = (containerHeight - baseHeight) / 2;
+  // Calculate rendered position
+  const scaleX = baseWidth / image.naturalWidth;
+  const scaleY = baseHeight / image.naturalHeight;
+  
+  let x = (containerWidth - baseWidth) / 2 + normalizedX * scaleX;
+  let y = (containerHeight - baseHeight) / 2 + normalizedY * scaleY;
 
-  // Scale from natural image coords to base rendered coords
-  const scaleX = baseWidth / (image.naturalWidth || baseWidth);
-  const scaleY = baseHeight / (image.naturalHeight || baseHeight);
-
-  let x = imgLeft + pos.x * scaleX;
-  let y = imgTop  + pos.y * scaleY;
-
-  // Apply current zoom & pan
+  // Apply current zoom/pan
   x = containerWidth / 2 + (x - containerWidth / 2) * lastScale + lastTranslateX;
   y = containerHeight / 2 + (y - containerHeight / 2) * lastScale + lastTranslateY;
 
