@@ -172,17 +172,42 @@
     /* ============================================================
        HOTSPOTS (10m mode)
        ============================================================ */
-    .hotspot {
-      position: absolute;
-      width: 12px; height: 12px;
-      background: #ffcc00; border-radius: 50%;
-      box-shadow: 0 0 6px rgba(255,50,50,0.9);
-      animation: blink 1.2s infinite alternate;
-      transform: translate(-50%,-50%);
-      z-index: 50; cursor: pointer;
-      padding: 10px; background-clip: content-box;
-    }
-    @keyframes blink { from{opacity:1;} to{opacity:.4;} }
+		/* Container handles bouncing */
+		.hotspot {
+			position: absolute;
+			transform: translate(-50%, -100%); /* center on point */
+			animation: bounce 0.4s infinite alternate;
+			cursor: pointer;
+			z-index: 50;
+		}
+
+		/* Pin shape inside */
+		.hotspot .pin {
+			width: 20px;
+			height: 20px;
+			background: #ffcc00;
+			border-radius: 50% 50% 50% 0;
+			transform: rotate(-45deg);
+			position: relative;
+		}
+
+		/* Inner circle */
+		.hotspot .pin::after {
+			content: "";
+			width: 10px;
+			height: 10px;
+			background: white;
+			border-radius: 50%;
+			position: absolute;
+			top: 5px;
+			left: 5px;
+		}
+
+		/* Pure vertical bounce */
+		@keyframes bounce {
+			from { transform: translate(-50%, -90%); }
+			to   { transform: translate(-50%, -110%); }
+		}
   </style>
 </head>
 <body>
