@@ -1,107 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Paladin</title>
+  <meta charset="UTF-8">
+  <title>Paladin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-        }
-
-		.image-container {
-		  height: calc(100dvh - 60px); /* dynamic viewport height */
-		  width: 100vw;
-		  margin-top: 60px;            /* keep content below header */
-		  position: relative;
-		  display: flex;
-		  align-items: center;
-		  justify-content: center;
-		  overflow: hidden;
-		}
-
-		/* Fallback if 100dvh isn't supported */
-		@supports not (height: 100dvh) {
-		  .image-container {
-			height: calc(100vh - 60px);
-		  }
-		}
-
-        img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-
-            touch-action: none; /* we implement our own gestures */
-            user-select: none;
-            -webkit-user-drag: none;
-            will-change: transform; /* smoother pinch/pan */
-        }
-
-        .arrow {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            fill: black;
-            background-color: rgba(200, 100, 100, 0.6);
-            border-radius: 50%;
-            opacity: 0.8;
-            cursor: pointer;
-            z-index: 10;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        .arrow:hover { opacity: 1; }
-        #arrow-left  { right: 60px; transform: translateY(-50%) rotate(180deg); }
-        #arrow-right { right: 10px; }
-        #arrow-up    { right: 35px; transform: translateY(-100%) rotate(270deg); }
-        #arrow-down  { right: 35px; transform: rotate(90deg); }
-
-        /* Hide buttons on small screens (phones) */
-        @media (pointer: coarse) {
-            .arrow {
-                display: none;
-            }
-        }
-
-		#header {
-		  position: fixed;
-		  top: 0;
-		  left: 0;
-		  width: 100%;
-		  height: 60px;                /* unchanged height */
-		  background: #eaf6ff;         /* pale blue */
-		  z-index: 1000;
-
-		  display: flex;               /* center the text */
-		  align-items: center;         /* vertical centering */
-		  justify-content: center;     /* horizontal centering */
-		  padding: 4px 12px;           /* small padding while fitting two lines */
-		  box-sizing: border-box;
-		}
-
-		#header h1 {
-		  margin: 0;
-		  font-weight: 600;
-		  font-size: 14px;             /* smaller font */
-		  line-height: 1.3;            /* comfortable for up to two lines */
-		  text-align: center;          /* centered text */
-		}
+  <style>
+    /* ============================================================
+       GLOBAL STYLES
+       ============================================================ */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
 		
-		/* Make header parts highlight nicely */
-		#header h1 span {
-		  display: inline-block;
-		  border-radius: 4px;
-		  padding: 0 2px;
-		}
+    /* ============================================================
+       HEADER BAR
+       ============================================================ */
+    #header {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 60px;
+      background: #3399cc;
+      color: white;
+      z-index: 1000;
 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 12px;
+      box-sizing: border-box;
+      transition: background-color 200ms ease;
+    }
+    #header h1, #header h2 {
+      margin: 0;
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.3;
+      text-align: center;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+    }
+    #header.header--past { background: #999; }
+    #header h1 span, #header h2 span { border-radius: 4px; padding: 0 2px; }
+
+    /* Buttons inside header */
+    #tenm-btn, #lang-btn, #help-btn, #help-close {
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #tenm-btn {
+      position: absolute; left: 10px; top: 50%;
+      transform: translateY(-50%);
+      padding: 4px 10px;
+      font: 600 12px/1 system-ui, sans-serif;
+      color: white;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 4px;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    #tenm-btn.active { background: #ffcc00; color: black; box-shadow: 0 0 6px rgba(255,204,0,0.8); }
+    #lang-btn, #help-btn, #help-close {
+      width: 32px; height: 32px; border: none; border-radius: 50%;
+      background: transparent; display: inline-flex; align-items: center; justify-content: center;
+    }
+    #lang-btn { position: absolute; right: 50px; top: 50%; transform: translateY(-50%); }
+    #help-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+    #lang-btn span { font: 600 11px/1 system-ui, sans-serif; color: white; text-shadow: 1px 1px 1px rgba(0,0,0,0.35); }
+    #help-btn svg, #lang-btn svg, #help-close svg { width: 18px; height: 18px; fill: white; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.35)); }
+		
 		/* One-shot yellow glow that fades out */
 		@keyframes flashFade {
 		  0%   { background: #fff3b0; }
@@ -111,226 +83,173 @@
 		.flash {
 		  animation: flashFade 900ms ease-out;
 		}
-		
-		/* Centered loader overlay inside the image container */
-		#loader {
-		  position: absolute;
-		  inset: 0;
-		  display: grid;
-		  place-items: center;
-		  pointer-events: none; /* won’t block gestures or clicks */
-		  z-index: 20;          /* above the image; arrows are typically z-index:10 */
-		}
 
-		#loader[hidden] {
-		  display: none;
-		}
+    /* ============================================================
+       IMAGE CONTAINER & ARROWS
+       ============================================================ */
+    .image-container {
+      height: calc(100dvh - 60px);
+      width: 100vw;
+      margin-top: 60px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    @supports not (height: 100dvh) {
+      .image-container { height: calc(100vh - 60px); }
+    }
+    img#forecast-image {
+      width: 100%; height: 100%;
+      object-fit: contain;
+      display: block;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      will-change: transform;
+    }
+    .arrow {
+      position: absolute;
+      width: 40px; height: 40px;
+      fill: black;
+      background-color: rgba(200,100,100,0.6);
+      border-radius: 50%;
+      opacity: 0.8; cursor: pointer; z-index: 10;
+      top: 50%; transform: translateY(-50%);
+    }
+    .arrow:hover { opacity: 1; }
+    #arrow-left { right: 60px; transform: translateY(-50%) rotate(180deg); }
+    #arrow-right { right: 10px; }
+    #arrow-up { right: 35px; transform: translateY(-100%) rotate(270deg); }
+    #arrow-down { right: 35px; transform: rotate(90deg); }
+    @media (pointer: coarse) { .arrow { display: none; } }
 
-		/* Simple spinner */
-		.spinner {
-		  width: 48px;
-		  height: 48px;
-		  border: 4px solid rgba(0,0,0,0.15);
-		  border-top-color: rgba(0,0,0,0.55);
-		  border-radius: 50%;
-		  animation: spin 0.9s linear infinite;
-		}
+    /* ============================================================
+       LOADER SPINNER
+       ============================================================ */
+    #loader { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; z-index: 20; }
+    #loader[hidden] { display: none; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(0,0,0,0.15);
+      border-top-color: rgba(0,0,0,0.55);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-		@keyframes spin {
-		  to { transform: rotate(360deg); }
-		}
+    /* ============================================================
+       HELP OVERLAY & CARD
+       ============================================================ */
+    #help-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: grid; place-items: center; z-index: 2000; }
+    #help-overlay[hidden] { display: none; }
+    .help-card {
+      background: #fff; color: #222;
+      max-width: 360px; width: calc(100% - 32px);
+      padding: 16px 16px 12px; border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      font: 400 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      position: relative;
+    }
+    .help-card h2 { margin: 0 0 8px 0; font-size: 16px; }
+    .help-card ul { margin: 8px 0 12px 18px; padding: 0; }
+    #help-close { position: absolute; top: 8px; right: 8px; }
 
-		/* Help overlay */
-		#help-overlay {
-		  position: fixed;
-		  inset: 0;
-		  background: rgba(0,0,0,0.35);
-		  display: grid;
-		  place-items: center;
-		  z-index: 2000; /* above header/arrows/loader */
-		}
-		#help-overlay[hidden] { display: none; }
+    /* ============================================================
+       HELP ICON STRIP (MOBILE)
+       ============================================================ */
+    #help-icons-strip {
+      display: none; justify-content: center; align-items: center; gap: 8px;
+      padding: 5px; background: rgba(255,255,255,0.9);
+      position: absolute; bottom: 0; width: 100%;
+      transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+    #help-icons-strip img { width: 70px; }
+    #help-icons-strip.hidden { opacity: 0; transform: translateY(100%); }
+    @media (pointer: coarse) { #help-icons-strip { display: flex; } }
 
-		.help-card {
-		  background: #fff;
-		  color: #222;
-		  max-width: 360px;
-		  width: calc(100% - 32px);
-		  padding: 16px 16px 12px;
-		  border-radius: 10px;
-		  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-		  font: 400 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-		  position: relative;
-		}
-		.help-card h2 {
-		  margin: 0 0 8px 0;
-		  font-size: 16px;
-		}
-		.help-card p {
-		  margin: 6px 0;
-		}
-		.help-card ul {
-		  margin: 8px 0 12px 18px;
-		  padding: 0;
-		}
-		/* Center the icon perfectly inside a circular button */
-		#help-close,
-		#help-btn {
-		  width: 32px;
-		  height: 32px;
-		  padding: 0;
-		  line-height: 0;           /* remove baseline spacing */
-		  border: none;
-		  border-radius: 50%;
-		  background: transparent;
-		  display: inline-flex;     /* center content */
-		  align-items: center;
-		  justify-content: center;
-		  box-sizing: border-box;
-		  cursor: pointer;
-		  -webkit-tap-highlight-color: transparent; /* nicer on mobile */
-		}
-
-		/* Keep your existing positioning rules */
-		#help-close {
-		  position: absolute;
-		  top: 8px;
-		  right: 8px;
-		}
-		#help-btn {
-		  position: absolute;
-		  right: 10px;
-		  top: 50%;
-		  transform: translateY(-50%);
-		}
-
-		/* Hover background circle */
-		#help-close:hover,
-		#help-btn:hover {
-		  background: rgba(0,0,0,0.06);
-		}
-
-		/* Make the SVG render as a block and size it consistently */
-		#help-close svg,
-		#help-btn svg {
-		  display: block;   /* no baseline gap */
-		  width: 18px;
-		  height: 18px;
-		  fill: #333;
-		}
-		
-		/* Language button styled like the help button */
-		#lang-btn {
-		  position: absolute;
-		  right: 50px;           /* place it left of the help button */
-		  top: 50%;
-		  transform: translateY(-50%);
-		  width: 32px;
-		  height: 32px;
-		  padding: 0;
-		  line-height: 0;
-		  border: none;
-		  border-radius: 50%;
-		  background: transparent;
-		  display: inline-flex;
-		  align-items: center;
-		  justify-content: center;
-		  box-sizing: border-box;
-		  cursor: pointer;
-		  -webkit-tap-highlight-color: transparent;
-		}
-		#lang-btn:hover { background: rgba(0,0,0,0.06); }
-
-		/* Show EN/SI label inside the circle */
-		#lang-btn span {
-		  display: inline-block;
-		  font: 600 11px/1 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-		  color: #333;
-		}
-		/* Smooth background change */
-		#header {
-		  transition: background-color 200ms ease;
-		}
-
-		/* Past forecasts: light gray background for subtle emphasis */
-		#header.header--past {
-		  background: #eeeeee;
-		}
-    </style>
-
+    /* ============================================================
+       HOTSPOTS (10m mode)
+       ============================================================ */
+    .hotspot {
+      position: absolute;
+      width: 12px; height: 12px;
+      background: #ffcc00; border-radius: 50%;
+      box-shadow: 0 0 6px rgba(255,50,50,0.9);
+      animation: blink 1.2s infinite alternate;
+      transform: translate(-50%,-50%);
+      z-index: 50; cursor: pointer;
+      padding: 10px; background-clip: content-box;
+    }
+    @keyframes blink { from{opacity:1;} to{opacity:.4;} }
+  </style>
 </head>
 <body>
+  <!-- ============================================================
+       HEADER BAR
+       ============================================================ -->
+  <div id="header">
+    <button id="tenm-btn" aria-pressed="false">10m</button>
+    <h1 id="header-text">Loading...</h1>
+    <h2>
+      <button id="lang-btn" aria-label="Change language"><span id="lang-code">EN</span></button>
+      <button id="help-btn" aria-label="Help">
+        <svg viewBox="0 0 24 24"><path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48
+        10 10 10 10-4.48 10-10S17.52 2 12 2zm0
+        18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8
+        3.59 8 8-3.59 8-8 8zm0-14c-2.21
+        0-4 1.79-4 4h2c0-1.1.9-2
+        2-2s2 .9 2 2c0 2-3 1.75-3
+        5h2c0-2.25 3-2.5 3-5
+        0-2.21-1.79-4-4-4z"/></svg>
+      </button>
+    </h2>
+  </div>
 
-	<div id="header">
-	  <h1>
-		<span id="header-weekday"></span>, 
-		<span id="header-date"></span>
-		<span id="header-time"></span><br>
-		<span id="header-alt"></span>
-		<button id="lang-btn" aria-label="Change language">
-		  <span id="lang-code">EN</span>
-		</button>
-		<button id="help-btn" aria-label="Help">
-		  <svg viewBox="0 0 24 24" aria-hidden="true">
-			<path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10
-					 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8
-					 s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2
-					 c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5
-					 0-2.21-1.79-4-4-4z"/>
-		  </svg>
-		</button>
-	  </h1>
-	</div>
-
-    <div class="image-container">
-        <img id="forecast-image" alt="Forecast">
-
-        <svg id="arrow-left" class="arrow" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-        </svg>
-        <svg id="arrow-right" class="arrow" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-        </svg>
-        <svg id="arrow-up" class="arrow" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-        </svg>
-        <svg id="arrow-down" class="arrow" viewBox="0 0 24 24">
-            <path d="M8 5v14l11-7z"/>
-        </svg>
-		<div id="loader" hidden>
-		  <div class="spinner" aria-label="Loading"></div>
-		</div>
+  <!-- ============================================================
+       IMAGE CONTAINER + ARROWS + LOADER
+       ============================================================ -->
+  <div class="image-container">
+    <img id="forecast-image" alt="Forecast" style="visibility:hidden;">
+    <svg id="arrow-left" class="arrow" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="arrow-right" class="arrow" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="arrow-up" class="arrow" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="arrow-down" class="arrow" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div id="loader" hidden><div class="spinner" aria-label="Loading"></div></div>
+    <div id="help-icons-strip">
+      <img src="img/001.png" alt="Icon 1"><img src="img/002.png" alt="Icon 2">
+      <img src="img/003.png" alt="Icon 3"><img src="img/004.png" alt="Icon 4">
     </div>
+  </div>
 
-	<div id="help-overlay" hidden>
-	  <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
-		<button id="help-close" aria-label="Close help">
-		  <svg viewBox="0 0 24 24" aria-hidden="true">
-			<path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41
-					 10.59 12 5 17.59 6.41 19 12 13.41
-					 17.59 19 19 17.59 13.41 12z"/>
-		  </svg>
-		</button>
-		<h2 id="help-title" style="text-align:center;"></h2>
-		<ul>
-		  <li id="help-li1"></li>
-		  <li id="help-li2"></li>
-		  <li id="help-li4"></li>
-		  <li id="help-li3"></li>
-		</ul>
-		<p id="help-email-line" style="text-align:center;">
-		  <span id="help-email-prefix"></span>
-		   <a href="mailto:gt8t7xmi@anonaddy.me?subject=Feedback%20on%20the%20Paladin">Email feedback</a>
-		</p>
-		<p style="font-size:0.9em; color:#888; text-align:center;">
-            Data and images courtesy of <br>
-            <a href="https://meteo.arso.gov.si/" target="_blank" style="color:#888;">
-              ARSO – Slovenian Environment Agency
-            </a>.
-        </p>
-	  </div>
-	</div>
-	
-    <script src="script.js"></script>
+  <!-- ============================================================
+       HELP OVERLAY DIALOG
+       ============================================================ -->
+  <div id="help-overlay" hidden>
+    <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <button id="help-close" aria-label="Close help">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5
+        5 6.41 10.59 12 5 17.59 6.41 19
+        12 13.41 17.59 19 19 17.59
+        13.41 12z"/></svg>
+      </button>
+      <h2 id="help-title" style="text-align:center;"></h2>
+      <ul>
+        <li id="help-li1"></li><li id="help-li2"></li><li id="help-li5"></li>
+        <li id="help-li4"></li><li id="help-li3"></li>
+      </ul>
+      <p id="help-email-line" style="text-align:center;">
+        <span id="help-email-prefix"></span>
+        <a href="mailto:gt8t7xmi@anonaddy.me?subject=Feedback%20on%20the%20Paladin">Email feedback</a>
+      </p>
+      <p style="font-size:0.9em; color:#888; text-align:center;">
+        Data and images courtesy of <br>
+        <a href="https://meteo.arso.gov.si/" target="_blank" style="color:#888;">ARSO – Slovenian Environment Agency</a>.
+      </p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
