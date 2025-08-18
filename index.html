@@ -181,26 +181,26 @@
 			z-index: 50;
 		}
 
+		/* Pin shape inside */
 		.hotspot .pin {
-		  width: 3%;   /* relative to image width */
-		  height: 3%;  /* keep it square */
-		  background: #ffcc00;
-		  border-radius: 50% 50% 50% 0;
-		  transform: rotate(-45deg);
-		  position: relative;
-		  min-width: 16px;   /* so it doesn’t get too tiny */
-		  min-height: 16px;
+			width: 20px;
+			height: 20px;
+			background: #ffcc00;
+			border-radius: 50% 50% 50% 0;
+			transform: rotate(-45deg);
+			position: relative;
 		}
+
+		/* Inner circle */
 		.hotspot .pin::after {
-		  content: "";
-		  width: 100%;
-		  height: 100%;
-		  background: white;
-		  border-radius: 50%;
-		  position: absolute;
-		  top: 25%;
-		  left: 25%;
-		}
+			content: "";
+			width: 10px;
+			height: 10px;
+			background: white;
+			border-radius: 50%;
+			position: absolute;
+			top: 5px;
+			left: 5px;
 
 		/* Pure vertical bounce */
 		@keyframes bounce {
